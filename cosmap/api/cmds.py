@@ -19,6 +19,10 @@ def install_analysis(analysis_path: Path, overwrite = False, name = None):
     model.install_analysis(analysis_path, name, overwrite = overwrite)
     print(f"Analysis \"{name}\" installed successfully")
 
+def uninstall_analysis(name: str):
+    model.uninstall_analysis(name)
+    print(f"Analysis \"{name}\" uninstalled successfully")
+
 def run_analysis(analysis_path: Path):
     if analysis_path.suffix == ".json":
         with open(analysis_path, "r") as f:

@@ -35,7 +35,8 @@ def install_analysis(model_file: Path, model_name: str, overwrite: bool = False)
     verify_model(folder_path, mod, model)
     add_new_model(model_file, model_name)
 
-def uninstall_model(model_name):
+
+def uninstall_analysis(model_name):
     known_models = get_known_models()
     if not model_name in known_models:
        raise CosmapModelException(f"Model '{model_name}' does not exist!") 
