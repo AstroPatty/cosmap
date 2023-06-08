@@ -34,24 +34,23 @@ you can set the default paramter value in the specfications to
 """
 
 
-class AnalysisParameters(BaseModel):
-    sampler: str = "RandomSampler"
+class CosmapAnalysisParameters(BaseModel):
     definition_module: ModuleType = None
-    definintion_path: Path = None
+    definition_path: Path = None
     transformations: dict = {}
     class Config:
         arbitrary_types_allowed = True
 class SamplingParameters(BaseModel):
     
     region_type: str = "Rectangle"
-    region_center: sky.SkyCoordinate | SkyCoord
-    region_dimensions: sky.AstropyUnitfulParamter | u.Quantity | list[u.Quantity]
+    region_center: sky.SkyCoordinate
+    region_dimensions: sky.AstropyUnitfulParamter
     sample_type: str = "Circle"
-    sample_dimensions: sky.AstropyUnitfulParamter | u.Quantity | list[u.Quantity]
+    sample_dimensions: sky.AstropyUnitfulParamter
     class Config:
         arbitrary_types_allowed = True
 
-class CosmapAnalysisParamters(BaseModel):
+class CosmapParameters(BaseModel):
     """
     The AnalysisParamters class is the base class for all analyis
     paramter objects. It keeps track of any paramters that are
@@ -66,9 +65,8 @@ class CosmapAnalysisParamters(BaseModel):
     """
     threads: int = Field(default = 1, ge=1)
     output_location = Path.cwd()
-    analysis_parameters: AnalysisParameters
+    analysis_parameters: CosmapAnalysisParameters = None
     sampling_parameters: SamplingParameters
-    additional_methods: Dict[str, Callable] = {}
     class Config:
         arbitrary_types_allowed = True
 

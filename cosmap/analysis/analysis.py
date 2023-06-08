@@ -49,7 +49,7 @@ class CosmapAnalysis:
     ignore_blocks = ["Setup", "Teardown"]
     def __init__(self, analysis_paramters: BaseModel, **kwargs):
         self.parameters = analysis_paramters
-        self.sampler = get_sampler(self.parameters.analysis_parameters.sampler, **kwargs)
+        self.sampler = get_sampler(self.parameters.sampling_parameters, **kwargs)
         self.sampler(self.parameters.sampling_parameters)
         self.setup()    
 

@@ -28,7 +28,7 @@ class AstropyUnitfulParamter(BaseModel):
         return v
 
     def get_value_type(self):
-        return u.Quantity
+        return u.Quantity | List[u.Quantity]
 
     def get_value(self):
         return self.value

@@ -5,9 +5,15 @@ from importlib import import_module
 from cosmap import locations
 from cosmap.analysis.analysis import CosmapAnalysis
 from cosmap.analysis.dependencies import build_dependency_graph
+from pydantic import BaseModel
 import json
 import toml
 
+
+class CosmapParameterModel(BaseModel):
+
+    class Config:
+        arbitrary_types_allowed = True
 
 class CosmapModelException(Exception):
     pass
