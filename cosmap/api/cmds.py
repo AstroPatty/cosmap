@@ -36,9 +36,8 @@ def run_analysis(analysis_path: Path):
     except KeyError:
         raise KeyError(f"Could not find a base analysis in the config file {analysis_path}")
     
-
     analysis_object = build_analysis_object(base_analysis, config)
-    analysis_object.run()
+    #analysis_object.run()
 
 
 def list_analyses():
@@ -47,3 +46,9 @@ def list_analyses():
     print("\033[1mKNOWN ANALYSES:\033[0m\n")
     print(output)
     print("\n")
+
+def locate_analysis(name: str):
+    """
+    Return the location of the analysis definition on disk.
+    """
+    return model.get_model_path(name)

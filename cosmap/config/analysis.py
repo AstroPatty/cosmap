@@ -3,8 +3,10 @@ from pydantic import BaseModel, Field
 from pathlib import Path
 from types import ModuleType
 from dask.distributed import get_client
-from cosmap.analysis.analysis import CosmapAnalysis
-from typing import Dict, Callable
+from cosmap.config.models import sky
+import astropy.units as u
+from astropy.coordinates import SkyCoord
+from typing import Dict, Callable, List
 """
 The parameter block is a top-level model that manages configuration
 for a project, or some piece of the project. The parameter block
@@ -33,10 +35,19 @@ you can set the default paramter value in the specfications to
 
 
 class AnalysisParameters(BaseModel):
-    scheduler: str = "DefaultScheduler"
+    sampler: str = "RandomSampler"
     definition_module: ModuleType = None
     definintion_path: Path = None
     transformations: dict = {}
+    class Config:
+        arbitrary_types_allowed = True
+class SamplingParameters(BaseModel):
+    
+    region_type: str = "Rectangle"
+    region_center: sky.SkyCoordinate | SkyCoord
+    region_dimensions: sky.AstropyUnitfulParamter | u.Quantity | list[u.Quantity]
+    sample_type: str = "Circle"
+    sample_dimensions: sky.AstropyUnitfulParamter | u.Quantity | list[u.Quantity]
     class Config:
         arbitrary_types_allowed = True
 
@@ -56,6 +67,8 @@ class CosmapAnalysisParamters(BaseModel):
     threads: int = Field(default = 1, ge=1)
     output_location = Path.cwd()
     analysis_parameters: AnalysisParameters
+    sampling_parameters: SamplingParameters
     additional_methods: Dict[str, Callable] = {}
     class Config:
         arbitrary_types_allowed = True
+

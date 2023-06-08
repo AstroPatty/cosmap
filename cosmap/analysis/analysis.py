@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import  Dict
 from cosmap.analysis.transformation import Transformation
-from cosmap.analysis import scheduler
+from cosmap.analysis import scheduler, sampler
 from cosmap.locations import ROOT
 from networkx import DiGraph
 from networkx.algorithms.dag import is_directed_acyclic_graph
@@ -12,6 +12,7 @@ from loguru import logger
 import sys
 from pydantic import BaseModel
 from types import ModuleType
+from typing import List
 class AnalysisException(Exception):
     pass
 
@@ -22,6 +23,11 @@ def get_scheduler(scheduler_name: str):
     except AttributeError:
         raise AnalysisException(f"Could not find the scheduler {scheduler_name}")
 
+def get_sampler(sampler_name: str):
+    try:
+        return getattr(sampler, sampler_name)
+    except AttributeError:
+        raise AnalysisException(f"Could not find the sampler {sampler_name}")
 
 class CosmapAnalysis:
     """
@@ -43,11 +49,12 @@ class CosmapAnalysis:
     ignore_blocks = ["Setup", "Teardown"]
     def __init__(self, analysis_paramters: BaseModel, **kwargs):
         self.parameters = analysis_paramters
-        self.scheduler = get_scheduler(self.parameters.analysis_parameters.scheduler, **kwargs)
-        self.scheduler.initialize(self.parameters)
+        self.sampler = get_sampler(self.parameters.analysis_parameters.sampler, **kwargs)
+        self.sampler(self.parameters.sampling_parameters)
         self.setup()    
 
     def setup(self, *args, **kwargs):
+        blocks = []
         if "Setup" in self.parameters.analysis_parameters.transformations:
             single_scheduler = get_scheduler("SingleThreadedScheduler")
             single_scheduler.initialize(self.parameters)
@@ -55,22 +62,24 @@ class CosmapAnalysis:
             self.parameters = self.update_parameters(self.parameters, {"analysis_parameters": new_params})
             self.scheduler.parameters = self.parameters
             self.scheduler.analysis_parameters = self.parameters.analysis_parameters
-        blocks = [k for k in self.parameters.analysis_parameters.transformations.keys() if k not in self.ignore_blocks and k[0].isupper()]
+        new_blocks = [k for k in self.parameters.analysis_parameters.transformations.keys() if k not in self.ignore_blocks and k[0].isupper()]
+        blocks.append(new_blocks)
+
         if blocks:
             self.scheduler.schedule(blocks)
 
     @staticmethod
     def update_parameters(old_paramters, new_params: dict):
+        p_obj = old_paramters
         for name, values in new_params.items():
-            if isinstance(getattr(old_paramters, name), BaseModel):
-                block = getattr(old_paramters, name)
+            param_path = name.split(".")
+            for p in param_path[:-1]:
+                p_obj = getattr(p_obj, p)
+
+            if isinstance(getattr(p_obj, param_path[-1]), BaseModel):
+                block = getattr(p_obj, name)
                 updated_block = CosmapAnalysis.update_parameters(block, values)
-                setattr(old_paramters, name, updated_block)
-            else:
-                param_path = name.split(".")
-                for p in param_path[:-1]:
-                    old_paramters = getattr(old_paramters, p)
-                setattr(old_paramters, param_path[-1], values)
+                setattr(p_obj, name, updated_block)
         return old_paramters
             
 

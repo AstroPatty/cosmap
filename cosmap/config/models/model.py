@@ -122,3 +122,9 @@ def get_definition_module(model_name: str):
         sys.path.append(model_directory)
     mod = import_module(module_name)
     return {"path": module_path, "module": mod}
+
+def get_model_path(model_name: str):
+    models = get_known_models()
+    if model_name not in models:
+        raise CosmapModelException(f"Model '{model_name}' not found...")
+    return models[model_name]["path"]

@@ -54,12 +54,19 @@ def list_installed_analyses():
     List currently installed analyses.
     """
     cmds.list_analyses()
-
-
+@click.command(name="locate")
+@click.argument("name", type = click.STRING)
+def locate_analysis(name: str):
+    """
+    Return the location of the analysis definition on disk.
+    """
+    path = cmds.locate_analysis(name)
+    print(path)
 cli.add_command(install_analysis)
 cli.add_command(uninstall_analysis)
 cli.add_command(run)
 cli.add_command(list_installed_analyses)
+cli.add_command(locate_analysis)
 
 if __name__ == "__main__":
     cli()

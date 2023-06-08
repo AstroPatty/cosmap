@@ -120,7 +120,6 @@ class DefaultScheduler(Scheduler):
     def initialize(self, parameters: BaseModel, client = None):
         super().initialize(parameters, client)
         if not (saddress := os.environ.get("COSMAP_SCHEDULER_ADDRESS", False)):
-            print(self.parameters.analysis_parameters.definition_module.__file__)
             self.client = Client()
             address = self.client.cluster.scheduler_address
             os.environ.update({"COSMAP_SCHEDULER_ADDRESS":  address})
@@ -143,7 +142,6 @@ class DefaultScheduler(Scheduler):
         """
         Schedule a block of transformations. This method will schedule all transformations in the block.
         """
-
 
         self.futures[block_name] = {}
 

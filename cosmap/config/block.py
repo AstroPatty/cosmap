@@ -5,6 +5,7 @@ import types
 import inspect
 
 def create_analysis_block(name, analysis_template, values):
+
     template = CosmapAnalysisParamters
     exclude = ["analysis_parameters"]
     analysis_parameters = values
@@ -22,8 +23,7 @@ def create_parameter_block(name: str, template: CosmapAnalysisParamters, values:
     template_fields = template.__fields__
     parameter_values = {}
     for field_name, field in template_fields.items():
-    
-        parameter_value = values.get(field_name, None)
+        parameter_value = values.get(field_name, {})
         if type(field.type_) == types.UnionType:
             allowed_types = field.type_.__args__
             if issubclass(allowed_types[0], SingleValueModel):
@@ -31,12 +31,14 @@ def create_parameter_block(name: str, template: CosmapAnalysisParamters, values:
                 parameter_values.update({field_name: parsed_parameter_value})
             elif parameter_value:
                 parameter_values.update({field_name:parameter_value})
+        elif isinstance(parameter_value, BaseModel):
+            parameter_values.update({field_name: parameter_value})
 
-        elif inspect.isclass(field.type_) and issubclass(field.type_, BaseModel) and isinstance(parameter_value, dict):
+        elif inspect.isclass(field.type_) and issubclass(field.type_, BaseModel):
             block = create_parameter_block(field_name, field.type_, parameter_value)
             parameter_values.update({field_name: block})
 
-        elif parameter_value is not None:
+        elif parameter_value:
             parameter_values.update({field_name: parameter_value})
     block = template(**parameter_values)
     return block

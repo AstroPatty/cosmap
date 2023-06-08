@@ -1,7 +1,10 @@
 from cosmap.config.models import model
 from cosmap.config.block import create_analysis_block
-from cosmap.analysis.analysis import CosmapAnalysis    
+from cosmap.analysis.analysis import CosmapAnalysis
+from typing import List
 import sys
+
+
 def build_analysis_object(base_analysis: str, config: dict, **kwargs):
     module = model.get_definition_module(base_analysis)
     transformations = model.get_transformations(base_analysis)
@@ -11,3 +14,4 @@ def build_analysis_object(base_analysis: str, config: dict, **kwargs):
     block.analysis_parameters.transformations = transformations
     analysis_object = CosmapAnalysis(analysis_paramters=block, **kwargs)
     return analysis_object
+

@@ -36,3 +36,25 @@ class Circle(BaseModel):
             return v
         return SkyCoord(*v, unit="deg")
 
+
+class Rectangle(BaseModel):
+    """
+    
+    """
+    bounds = List[u.Quantity]
+    bound_units: u.Unit = u.degree
+    class Config:
+        arbitrary_types_allowed = True
+    
+    @validator('bounds', pre=True)
+    def handle_bounds(cls, v, values):
+        new_bounds = []
+        for bound in v:
+            if not isinstance(bound, u.Quantity):
+                try:
+                    bound = float(bound)
+                except ValueError:
+                    raise ValueError(f"Expected a number for the radius, got {bound}")
+                new_bounds.append(bound*values["bound_units"])        
+        return bound*values["bound_units"]
+        
