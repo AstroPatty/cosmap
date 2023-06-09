@@ -11,14 +11,13 @@ from typing import Dict, Callable, List
 The parameter block is a top-level model that manages configuration
 for a project, or some piece of the project. The parameter block
 may contain exactly two things, a set of paramters and a set
-of sub-blocks. Sub-block names are capitalized, while paramter
-names are lower-case
+of sub-blocks.
 
 A paramter block is built from two things: a template block,
 which specifies which parameters and blocks are expected,
-and an actual paramter specification, which contains values
+and a dictionary, which contains values
 for the associated paramters. Paramter specifications
-should be understandable by PyDantic.
+should be understandable by pydantic.
 
 Parmaters with default values in the parameter specification
 will be treated as optional.
@@ -26,8 +25,12 @@ will be treated as optional.
 Certain special types of paramters have been built into 
 cosmap, which contain custom validators for things like astropy
 units. To specify a paramter should use one of these pre-built models,
-you can set the default paramter value in the specfications to 
-"model.x.y" where x.y... is the models path. 
+simply import the model. For example, to specify that a parameter
+should be a sky coordinate, use::
+
+    from cosmap.config.models import sky
+    class MyParamters(BaseModel):
+        my_param: sky.SkyCoordinate
 
 
 
@@ -35,13 +38,24 @@ you can set the default paramter value in the specfications to
 
 
 class CosmapAnalysisParameters(BaseModel):
+    """
+    Defines the parameters that will be used by the specific analysis.
+    The definition_module and definition_path will be automatically filled in.
+    This class should not be instatiated directly. Instead, use the 
+    create_analysis_block function in cosmap.config.block.
+    """
     definition_module: ModuleType = None
     definition_path: Path = None
     transformations: dict = {}
     class Config:
         arbitrary_types_allowed = True
-class SamplingParameters(BaseModel):
-    
+class CosmapSamplingParameters(BaseModel):
+    """
+    Cosmap analyses always involve repeating the same process on several
+    different "regions" (samlles) of the sky. This class deifnes the parameters
+    that are used to define the samples, and the greater region they are drawn from.
+    The individual sampler will be responsible for actually evaluating the inputs here.
+    """
     region_type: str = "Rectangle"
     region_center: sky.SkyCoordinate
     region_dimensions: sky.AstropyUnitfulParamter
@@ -52,21 +66,17 @@ class SamplingParameters(BaseModel):
 
 class CosmapParameters(BaseModel):
     """
-    The AnalysisParamters class is the base class for all analyis
-    paramter objects. It keeps track of any paramters that are
-    used inside the analysis itself. This base class defines
-    a couple of fields that should be present for an analysis (even if
-    they are not explicitly used). When designing an analysis, your
-    configuration object should be a subclass of AnalysisParamters.
-    
-    Analysis paramters can be hierarchical: You can create a sub-block
-    of parameters, if needed.
-
+    The CosmapParameters is the top-level parameter block
+    that is used throughout the analysis. It contains
+    a few parameters that are defined at a top-level (such as 
+    the number of cores to use), but more importantly contains
+    sub-blocks, which are used by various parts of the analysis.
+    process.
     """
     threads: int = Field(default = 1, ge=1)
     output_location = Path.cwd()
     analysis_parameters: CosmapAnalysisParameters = None
-    sampling_parameters: SamplingParameters
+    sampling_parameters: CosmapSamplingParameters
     class Config:
         arbitrary_types_allowed = True
 
