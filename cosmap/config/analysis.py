@@ -36,7 +36,6 @@ should be a sky coordinate, use::
 
 """
 
-
 class CosmapAnalysisParameters(BaseModel):
     """
     Defines the parameters that will be used by the specific analysis.
@@ -56,11 +55,12 @@ class CosmapSamplingParameters(BaseModel):
     that are used to define the samples, and the greater region they are drawn from.
     The individual sampler will be responsible for actually evaluating the inputs here.
     """
-    region_type: str = "Rectangle"
+    region_shape: str = "Rectangle"
     region_center: sky.SkyCoordinate
     region_dimensions: sky.AstropyUnitfulParamter
-    sample_type: str = "Circle"
+    sample_shape: str = "Circle"
     sample_dimensions: sky.AstropyUnitfulParamter
+    sample_type: str = "Random"
     class Config:
         arbitrary_types_allowed = True
 

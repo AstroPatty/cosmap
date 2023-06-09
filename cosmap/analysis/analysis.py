@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import  Dict
 from cosmap.analysis.transformation import Transformation
+from cosmap.analysis.sampler import Sampler
 from cosmap.analysis import scheduler, sampler
 from cosmap.locations import ROOT
 from networkx import DiGraph
@@ -22,13 +23,7 @@ def get_scheduler(scheduler_name: str):
         return getattr(scheduler, scheduler_name)()
     except AttributeError:
         raise AnalysisException(f"Could not find the scheduler {scheduler_name}")
-
-def get_sampler(sampler_name: str):
-    try:
-        return getattr(sampler, sampler_name)
-    except AttributeError:
-        raise AnalysisException(f"Could not find the sampler {sampler_name}")
-
+    
 class CosmapAnalysis:
     """
     The Analysis class is the central class of Cosmap. It defines
@@ -47,9 +42,10 @@ class CosmapAnalysis:
     ignore_blocks = ["Setup", "Teardown"]
     def __init__(self, analysis_paramters: BaseModel, **kwargs):
         self.parameters = analysis_paramters
-        self.sampler = get_sampler(self.parameters.sampling_parameters, **kwargs)
-        self.sampler(self.parameters.sampling_parameters)
-        self.setup()    
+        self.sampler = Sampler(self.parameters.sampling_parameters)
+        exit()
+        self.setup()
+        
 
     def setup(self, *args, **kwargs):
         blocks = []
