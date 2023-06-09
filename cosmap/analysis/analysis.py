@@ -38,9 +38,7 @@ class CosmapAnalysis:
 
     Cosmap is generally designed for analsyes that involve pulling data in some
     region from a dataset, performing some computation on that data, and then
-    repeating many times. This core loop is itself defined as an analysis. This
-    "top-level analysis" handles data management, while running a user-defined
-    analysis.
+    repeating many times.
 
     Distributed computing is handled by dask. Documentation to come...
 

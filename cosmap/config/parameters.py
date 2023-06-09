@@ -48,8 +48,8 @@ def build_block(specification: dict, parameters: dict, name = "main"):
     specification_blocks = set([k for k, v in specification.items() if v.get("type", "parameter") == "block"])
     parameter_blocks = set([k for k, v in parameters.items() if v.get("type", "parameter") == "block"])
     if specification_blocks != parameter_blocks:
-        assymetry = list(specification_blocks.symmetric_difference(parameter_blocks))
-        failure_string = ", ".join(assymetry)
+        asymetry = list(specification_blocks.symmetric_difference(parameter_blocks))
+        failure_string = ", ".join(asymetry)
         raise CosmapParameterException(f"Paramter block {name} doesn't match its specification: "\
                                        f"Found mismatching blocks {failure_string}")
     output = {}

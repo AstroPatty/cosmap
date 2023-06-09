@@ -5,6 +5,29 @@ import astropy.units as u
 
 
 class AstropyUnitfulParamter(BaseModel):
+    """
+    This Single Value Model consumes a value (or values)
+    and a unit, and produces the associated astropy quantity or
+    list of quantities. For example, the in a parameter block
+    it could looks something like this::
+
+        class MyModel(BaseModel):
+            my_parameter: AstropyUnitfulParamter
+            other_parameter: int
+            yet_another parameter: float
+    
+    And then, in the associated json file, it could look like this::
+
+        {
+            my_parameter: {
+                value: 10,
+                units: "degree"
+            }
+            other_parameter: 10,
+            yet_another_parameter: 3.5
+
+        }
+    """
     class Config:
         arbitrary_types_allowed = True
 
@@ -36,6 +59,28 @@ class AstropyUnitfulParamter(BaseModel):
 
 
 class SkyCoordinate(BaseModel):
+
+    """
+    The SkyCoordinate model consumes a list of two values and(optionally) a
+    unit. It produces an astropy SkyCoord object. For example, in a parameter
+    block it could look something like this::
+
+        class MyModel(BaseModel):
+            location: SkyCoordinate
+            other_parameter: int
+            yet_another parameter: float
+    
+    And then, in the associated json file, it could look like this::
+        {
+            location: {
+                coordinate: [10, 20],
+                units: ["deg", "deg"]
+            },
+            other_parameter: 5
+            yet_another_parameter: 3.5
+        }
+    
+    """
     units: List[str] = Field(
         ["deg", "deg"],
         min_items=1,
@@ -51,9 +96,12 @@ class SkyCoordinate(BaseModel):
         if len(val) == 1:
             type_ = val[0]
             output = [type_, type_]
-        else:
+        elif len(val) == 2:
             output = val
+        else:
+            raise ValueError("Skycoord's 'units' field should have one or two items")
         return output
+    
     
     coordinate: SkyCoord
 

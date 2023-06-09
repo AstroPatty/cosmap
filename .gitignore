@@ -1,3 +1,6 @@
+# Per-installation configuration file
+cosmap/config/known_models.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
