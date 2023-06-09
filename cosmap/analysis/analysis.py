@@ -43,11 +43,14 @@ class CosmapAnalysis:
     def __init__(self, analysis_paramters: BaseModel, **kwargs):
         self.parameters = analysis_paramters
         self.sampler = Sampler(self.parameters.sampling_parameters)
-        exit()
         self.setup()
-        
+ 
 
     def setup(self, *args, **kwargs):
+
+        self.sampler.initialize_sampler()
+        self.sampler.generate_samples(10000)
+        exit()
         blocks = []
         if "Setup" in self.parameters.analysis_parameters.transformations:
             single_scheduler = get_scheduler("SingleThreadedScheduler")
