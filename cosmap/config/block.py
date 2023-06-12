@@ -79,7 +79,6 @@ def _create_parameter_block(name: str, template: BaseModel, values: dict):
     parameter_values = {}
     new_model_input = {}
     for field_name, field in template_fields.items():
-        print(field.validators)
         parameter_value = values.get(field_name, {})
         if type(field.type_) == types.UnionType:
             allowed_types = field.type_.__args__
@@ -107,7 +106,10 @@ def _create_parameter_block(name: str, template: BaseModel, values: dict):
 
 
 def handle_single_value(class_: BaseModel, input_values: dict):
-    param = class_(**input_values)
+    if type(input_values) != dict:
+        param = class_(value=input_values)
+    else:
+        param = class_(**input_values)
     return param.get_value_type(), param.get_value()
 
 def build_paramter_block_class(name: str, block_data: dict) -> dict:

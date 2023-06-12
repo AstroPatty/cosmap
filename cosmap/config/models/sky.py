@@ -86,6 +86,8 @@ class SkyCoordinate(BaseModel):
         min_items=1,
         max_items=2
     )
+    value: SkyCoord
+
     class Config:
         arbitrary_types_allowed = True
 
@@ -103,10 +105,9 @@ class SkyCoordinate(BaseModel):
         return output
     
     
-    coordinate: SkyCoord
 
-    @validator("coordinate", pre=True)
-    def build_coordnate(cls, v, values):
+    @validator("value", pre=True)
+    def build_coordinate(cls, v, values):
         try:
             vals = list(v)
             if len(vals) != 2:
@@ -119,4 +120,4 @@ class SkyCoordinate(BaseModel):
     def get_value_type(self):
         return SkyCoord
     def get_value(self):
-        return self.coordinate
+        return self.value
