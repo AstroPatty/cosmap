@@ -64,6 +64,17 @@ class CosmapSamplingParameters(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
+
+class CosmapDatasetParameters(BaseModel):
+    """
+    Cosmap analyses always involve repeatedly querying some large survey
+    dataset. This block contains that information. The default wrapper is
+    heinlein, which is optimized for large survey datasets.
+    """
+    dataset_name: str = Field(...)
+    dataset_wrapper = "heinlein"
+
+
 class CosmapParameters(BaseModel):
     """
     The CosmapParameters is the top-level parameter block
@@ -77,6 +88,7 @@ class CosmapParameters(BaseModel):
     output_location = Path.cwd()
     analysis_parameters: CosmapAnalysisParameters = None
     sampling_parameters: CosmapSamplingParameters
+    dataset_parameters: CosmapDatasetParameters
     class Config:
         arbitrary_types_allowed = True
 

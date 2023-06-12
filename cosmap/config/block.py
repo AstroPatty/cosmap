@@ -44,9 +44,9 @@ def create_parameter_block(name: str, template: BaseModel, values: dict, sub_blo
         if _contains_single_value_model(field):
             #This field contains one of Cosmap's special models
             if type(field.type_) == types.UnionType:
-                print(field.type_)
                 raise NotImplementedError(f"{field_name}")
             else:
+
                 cls, parsed_parameter_value = handle_single_value(field.type_, values.get(field_name, {}))
                 parameter_values.update({field_name: parsed_parameter_value})
                 new_model_input.update({field_name: (cls, ...)})
@@ -64,7 +64,10 @@ def create_parameter_block(name: str, template: BaseModel, values: dict, sub_blo
             #This is just a regular Pydantic field
             if field_name in values:
                 parameter_values.update({field_name: values[field_name]})
-            new_model_input.update({field_name: (field.type_, field.default)})
+            if field.required:
+                new_model_input.update({field_name: (field.type_, ...)})
+            else:
+                new_model_input.update({field_name: (field.type_, field.default)})
             new_model_validators.update({field_name: field.validators})
 
     new_template = create_model(name, **new_model_input, __validators__=new_model_validators, __config__=template.Config)
