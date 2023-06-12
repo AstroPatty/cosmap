@@ -11,7 +11,7 @@ import json
 import uuid
 from dask.distributed import Client, get_client
 from loguru import logger
-import sys
+from devtools import debug
 from pydantic import BaseModel
 from types import ModuleType
 from typing import List
@@ -52,15 +52,27 @@ class CosmapAnalysis:
 
         self.sampler.initialize_sampler()
         self.sampler.generate_samples(10000)
-        exit()
         blocks = []
         if "Setup" in self.parameters.analysis_parameters.transformations:
             single_scheduler = get_scheduler("SingleThreadedScheduler")
             single_scheduler.initialize(self.parameters)
             new_params = single_scheduler.run_block("Setup")
-            self.parameters = self.update_parameters(self.parameters, {"analysis_parameters": new_params})
-            self.scheduler.parameters = self.parameters
-            self.scheduler.analysis_parameters = self.parameters.analysis_parameters
+            new_param_input = {}
+            new_analysis_parameters = {}
+            for name, block in new_params.items():
+                if name.split(".")[0] == "Main":
+                    new_param_input.update({".".join(name.split(".")[1:]): block})
+                else:
+                    new_analysis_parameters.update({name: block})
+            if new_analysis_parameters:
+                new_param_input.update({"analysis_parameters": new_analysis_parameters})
+            
+            self.parameters = self.update_parameters(self.parameters, new_param_input)
+
+        debug(self.parameters)
+        self.prepare_output()
+        exit()
+
         new_blocks = [k for k in self.parameters.analysis_parameters.transformations.keys() if k not in self.ignore_blocks and k[0].isupper()]
         blocks.append(new_blocks)
 
@@ -74,15 +86,16 @@ class CosmapAnalysis:
             param_path = name.split(".")
             for p in param_path[:-1]:
                 p_obj = getattr(p_obj, p)
-
             if isinstance(getattr(p_obj, param_path[-1]), BaseModel):
                 block = getattr(p_obj, name)
                 updated_block = CosmapAnalysis.update_parameters(block, values)
                 setattr(p_obj, name, updated_block)
+            else:
+                setattr(p_obj, param_path[-1], values)
         return old_paramters
-            
+    
+    def prepare_output(self):
+        pass
 
     def run(self, *args, **kwargs):
-        blocks = [k for k in self.parameters.analysis_parameters.transformations.keys() if k not in self.ignore_blocks and k[0].isupper()]
-        results = {block: self.scheduler.run_block(block) for block in blocks}
-        return results
+        raise NotImplementedError

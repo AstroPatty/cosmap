@@ -81,10 +81,10 @@ class Scheduler(ABC):
             param_path = param.split(".")
             if param_path[0] == "Main":
                 obj = self.parameters
-                param_path.pop(0)
             else:
                 obj = self.parameters.analysis_parameters
-            for p in param_path:
+                param_path.insert(0, "analysis_parameters")
+            for p in param_path[1:]:
                 try:
                     obj = getattr(obj, p)
 

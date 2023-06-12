@@ -79,6 +79,10 @@ class CosmapDatasetParameters(BaseModel):
     dataset_name: str
     dataset_wrapper = "heinlein"
 
+class CosmapOutputParameters(BaseModel):
+    base_output_path = Path.cwd()
+    output_paths: Path | dict = None
+    output_formats: str | dict = "dataframe"
 
 class CosmapParameters(BaseModel):
     """
@@ -90,7 +94,7 @@ class CosmapParameters(BaseModel):
     process.
     """
     threads: int = Field(default = 1, ge=1)
-    output_location = Path.cwd()
+    output_parameters: CosmapOutputParameters
     analysis_parameters: CosmapAnalysisParameters = None
     sampling_parameters: CosmapSamplingParameters
     dataset_parameters: CosmapDatasetParameters
