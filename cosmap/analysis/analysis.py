@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import  Dict
 from cosmap.analysis.transformation import Transformation
 from cosmap.analysis.sampler import Sampler
+from cosmap.dataset import get_dataset
 from cosmap.analysis import scheduler, sampler
 from cosmap.locations import ROOT
 from networkx import DiGraph
@@ -43,6 +44,7 @@ class CosmapAnalysis:
     def __init__(self, analysis_paramters: BaseModel, **kwargs):
         self.parameters = analysis_paramters
         self.sampler = Sampler(self.parameters.sampling_parameters)
+        self.dataset = get_dataset(self.parameters.dataset_parameters)
         self.setup()
  
 

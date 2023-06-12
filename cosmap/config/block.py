@@ -45,11 +45,13 @@ def create_parameter_block(name: str, template: BaseModel, values: dict, sub_blo
             #This field contains one of Cosmap's special models
             if type(field.type_) == types.UnionType:
                 raise NotImplementedError(f"{field_name}")
-            else:
-
-                cls, parsed_parameter_value = handle_single_value(field.type_, values.get(field_name, {}))
-                parameter_values.update({field_name: parsed_parameter_value})
-                new_model_input.update({field_name: (cls, ...)})
+            else:  
+                field_value = values.get(field_name, None)
+                if field_value is not None:
+                    cls, parsed_parameter_value = handle_single_value(field.type_, values.get(field_name, {}))
+                    parameter_values.update({field_name: parsed_parameter_value})
+                    new_model_input.update({field_name: (cls, ...)})
+                
                 #The validators here are responsible for creating the value
                 #So we don't actually want them in the new model.
         

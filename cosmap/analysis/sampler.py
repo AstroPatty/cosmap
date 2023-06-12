@@ -58,9 +58,13 @@ class CosmapSampler(ABC):
                 raise CosmapSamplerException(f"Could not find frame size {frame_size}")
 
         df = [-frame_width, -frame_height, frame_width, frame_height]
-        center = self.parameters.region_center
-        dims = self.parameters.region_dimensions
-        full_bounds = [center.ra - dims[0]/2, center.dec - dims[1]/2, center.ra + dims[0]/2,  center.dec + dims[1]/2]
+        try:
+            center = self.parameters.region_center
+            dims = self.parameters.region_dimensions
+            full_bounds = [center.ra - dims[0]/2, center.dec - dims[1]/2, center.ra + dims[0]/2,  center.dec + dims[1]/2]
+        except AttributeError:
+            full_bounds = self.parameters.region_bounds
+
         self.frame = [full_bounds[i] + df[i] for i in range(4)]
         self.initialize_sampler_bounds()
 

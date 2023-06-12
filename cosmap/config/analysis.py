@@ -1,5 +1,5 @@
 from __future__ import annotations
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from pathlib import Path
 from types import ModuleType
 from dask.distributed import get_client
@@ -56,14 +56,19 @@ class CosmapSamplingParameters(BaseModel):
     The individual sampler will be responsible for actually evaluating the inputs here.
     """
     region_shape: str = "Rectangle"
-    region_center: sky.SkyCoordinate
-    region_dimensions: sky.AstropyUnitfulParamter
+    region_center: sky.SkyCoordinate = None
+    region_dimensions: sky.AstropyUnitfulParamter = None
+    region_bounds: sky.AstropyUnitfulParamter = None
     sample_shape: str = "Circle"
-    sample_dimensions: sky.AstropyUnitfulParamter
+    sample_dimensions: sky.AstropyUnitfulParamter = None
     sample_type: str = "Random"
     class Config:
         arbitrary_types_allowed = True
 
+    @validator("region_bounds")
+    def validate_region_bounds(cls, v, values):
+        if ("region_center" not in values or "region_dimensions" not in values) and v is None:
+            raise ValueError("Either region_center and region_dimensions or region_bounds must be specified")
 
 class CosmapDatasetParameters(BaseModel):
     """
@@ -71,7 +76,7 @@ class CosmapDatasetParameters(BaseModel):
     dataset. This block contains that information. The default wrapper is
     heinlein, which is optimized for large survey datasets.
     """
-    dataset_name: str = Field(...)
+    dataset_name: str
     dataset_wrapper = "heinlein"
 
 
