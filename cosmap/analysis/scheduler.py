@@ -10,15 +10,20 @@ import os
 class CosmapAnalysisExcept(Exception):
     pass
 
-def load_transformations(analysis_parameters: BaseModel):
+def load_transformations(analysis_parameters: BaseModel, block_ = None):
     output = {}
+    definition_module = getattr(analysis_parameters.definition_module, "transformations")
     for name, block in analysis_parameters.transformations.items():
-        if not name[0].isupper():
-            #This is not a block
+        
+        if block is not None and name != block_:
             continue
         block_output = {}
+        try:
+            block_definition = getattr(definition_module, name)
+        except AttributeError:
+            raise CosmapAnalysisExcept(f"Could not find the definitions for block {name}!")
+        
         for transformation in block:
-            block_definition = getattr(analysis_parameters.definition_module, name)
             block_output.update({transformation: getattr(block_definition, transformation)})
         output.update({name: block_output})
     return output
@@ -36,11 +41,12 @@ class Scheduler(ABC):
     transformation. It is also responsible for making sure that the correct transformations are
     run in the correct order.
     """
-    def initialize(self, parameters: BaseModel, client = None):
+    def initialize(self, parameters: BaseModel, block = None, client = None):
+        self.block = block
         self.parameters = parameters
         self.analysis_parameters = parameters.analysis_parameters
-        self.dependency_graphs = build_dependency_graphs(self.analysis_parameters.transformations)
-        self.transformation_objects = load_transformations(self.analysis_parameters)
+        self.dependency_graphs = build_dependency_graphs(self.analysis_parameters.transformations, block_=block)
+        self.transformation_objects = load_transformations(self.analysis_parameters, block_ = block)
         self.client = client
         self.futures = {}
 
@@ -195,6 +201,8 @@ class SingleThreadedScheduler(Scheduler):
 
 
         output_transformations = [tname for tname in self.dependency_graphs[block_name].nodes if self.dependency_graphs[block_name].out_degree(tname) == 0]
+        output_transformations.extend([tname for tname in self.dependency_graphs[block_name].nodes if self.analysis_parameters.transformations[block_name][tname].get("output")])
+        output_transformations = set(output_transformations)
         output = {}
         if output_transformations:
             for tname in output_transformations:

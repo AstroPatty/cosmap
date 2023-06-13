@@ -3,15 +3,17 @@ import networkx
 class CosmapAnalysisException(Exception):
     pass
 
-def build_dependency_graphs(transformation_blocks: dict) -> dict:
+def build_dependency_graphs(transformation_blocks: dict, block_ = None) -> dict:
     graphs = {}
     for name, block in transformation_blocks.items():
+        if block_ is not None and name != block_:
+            continue
         if name[0].isupper():
             dependency_graph = build_dependency_graph(block)
             graphs.update({name: dependency_graph})
     return graphs
 
-def build_dependency_graph(transformation_block: dict) -> networkx.DiGraph:
+def build_dependency_graph(transformation_block: dict, block = None) -> networkx.DiGraph:
     """
     Once an analysis has been defined, we have to check its validity.
     Obvious failrue cases include if two transformations depend on the output

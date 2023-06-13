@@ -50,13 +50,13 @@ class CosmapAnalysis:
  
 
     def setup(self, *args, **kwargs):
-
+        self.verify_analysis()
         self.sampler.initialize_sampler()
         self.sampler.generate_samples(10000)
         blocks = []
         if "Setup" in self.parameters.analysis_parameters.transformations:
             single_scheduler = get_scheduler("SingleThreadedScheduler")
-            single_scheduler.initialize(self.parameters)
+            single_scheduler.initialize(self.parameters, block = "Setup")
             new_params = single_scheduler.run_block("Setup")
             new_param_input = {}
             new_analysis_parameters = {}
@@ -72,6 +72,7 @@ class CosmapAnalysis:
 
 
         self.output_handler = get_output_handler(self.parameters.output_parameters)
+        debug(self.parameters)
         exit()
 
         new_blocks = [k for k in self.parameters.analysis_parameters.transformations.keys() if k not in self.ignore_blocks and k[0].isupper()]
@@ -79,6 +80,19 @@ class CosmapAnalysis:
 
         if blocks:
             self.scheduler.schedule(blocks)
+
+    def verify_analysis(self):
+        """
+        Verify that the analysis is valid. By the time we get here, we already know that all of the configuraiton
+        is valid, since it had to be parsed by Pydantic. This function checks that the analysis itself is valid, meaning
+        that it has a valid DAG structure, all transformations defined in the config are implementation file, and that all
+        transformations take parameters that actually exist (or, will be created by a previous transformation)
+        """
+        transformations = self.parameters.analysis_parameters.transformations.get("Main", {})
+        if not transformations:
+            raise AnalysisException("No transformations defined in transformations.json!")
+
+
 
     @staticmethod
     def update_parameters(old_paramters, new_params: dict):
