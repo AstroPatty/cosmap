@@ -6,6 +6,7 @@ from cosmap.dataset import get_dataset
 from cosmap.analysis import scheduler, sampler
 from cosmap.locations import ROOT
 from cosmap.output import get_output_handler
+from cosmap.analysis import dependencies
 from networkx import DiGraph
 from networkx.algorithms.dag import is_directed_acyclic_graph
 import json
@@ -72,7 +73,6 @@ class CosmapAnalysis:
 
 
         self.output_handler = get_output_handler(self.parameters.output_parameters)
-        debug(self.parameters)
         exit()
 
         new_blocks = [k for k in self.parameters.analysis_parameters.transformations.keys() if k not in self.ignore_blocks and k[0].isupper()]
@@ -91,8 +91,19 @@ class CosmapAnalysis:
         transformations = self.parameters.analysis_parameters.transformations.get("Main", {})
         if not transformations:
             raise AnalysisException("No transformations defined in transformations.json!")
-
-
+        graph = dependencies.build_dependency_graphs(self.parameters.analysis_parameters.transformations, block_="Main")
+        #Note, the build_dependency_graphs function will raise an exception if the graph is not a DAG
+        #So we don't need to check that here
+        definitions = self.parameters.analysis_parameters.definition_module.transformations
+        try:
+            main_definitions = definitions.Main
+        except AttributeError:
+            raise AnalysisException("No Main block found in transformations.py!")
+        for name, block in transformations.items():
+            try:
+                getattr(main_definitions, name)
+            except AttributeError:
+                raise AnalysisException(f"Could not find the definition for transformation {name} in the \'Main\' block of transformations.py!")
 
     @staticmethod
     def update_parameters(old_paramters, new_params: dict):
