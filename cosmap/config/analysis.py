@@ -45,7 +45,6 @@ class CosmapAnalysisParameters(BaseModel):
     create_analysis_block function in cosmap.config.block.
     """
     definition_module: ModuleType = None
-    definition_path: Path = None
     transformations: dict = {}
     class Config:
         arbitrary_types_allowed = True

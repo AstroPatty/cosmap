@@ -1,26 +1,16 @@
 from pathlib import Path
-from cosmap.config.models import model
 from cosmap.config.block import create_parameter_block, create_analysis_block
-from cosmap.analysis.analysis import CosmapAnalysis
+from cosmap.analysis import manage
 from cosmap.analysis.utils import build_analysis_object
-from cosmap.config.models.model import get_known_models
 import toml
 import json
 
 def install_analysis(analysis_path: Path, overwrite = False, name = None):
-    if not Path.exists(analysis_path):
-        raise FileNotFoundError(f"Could not find the analysis path {analysis_path}")
-    if not analysis_path.name.endswith(".py"):
-        raise ValueError(f"Expected a python file for the analysis but found {Path.name}")
-    
-    if name is None:
-        name = analysis_path.stem
-    analysis_path = Path.cwd() / analysis_path
-    model.install_analysis(analysis_path, name, overwrite = overwrite)
+    manage.install_analysis(analysis_path, name)
     print(f"Analysis \"{name}\" installed successfully")
 
 def uninstall_analysis(name: str):
-    model.uninstall_analysis(name)
+    manage.uninstall_analysis(name)
     print(f"Analysis \"{name}\" uninstalled successfully")
 
 def run_analysis(analysis_path: Path):
@@ -35,13 +25,16 @@ def run_analysis(analysis_path: Path):
         base_analysis = config["base-analysis"]
     except KeyError:
         raise KeyError(f"Could not find a base analysis in the config file {analysis_path}")
-    
-    analysis_object = build_analysis_object(base_analysis, config)
+    analysis_data = manage.load_analysis_files(base_analysis)
+    analysis_object = build_analysis_object(analysis_data, config)
     #analysis_object.run()
 
 
 def list_analyses():
-    model_names = list(get_known_models().keys())
+    model_names = list(manage.get_known_analyses().keys())
+    if not model_names:
+        print("No analyses installed")
+        return
     output = "\n".join(model_names)
     print("\033[1mKNOWN ANALYSES:\033[0m\n")
     print(output)
@@ -51,4 +44,4 @@ def locate_analysis(name: str):
     """
     Return the location of the analysis definition on disk.
     """
-    return model.get_model_path(name)
+    return manage.get_analysis_path(name)

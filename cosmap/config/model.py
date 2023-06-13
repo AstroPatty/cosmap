@@ -18,36 +18,6 @@ class CosmapParameterModel(BaseModel):
 class CosmapModelException(Exception):
     pass
 
-def install_analysis(model_file: Path, model_name: str, overwrite: bool = False) -> None:
-    """
-    This function takes a file and a model name and ensures the
-    model can easily be found later. It validates the model to
-    make sure it can be used. 
-    """
-    if model_file.suffix != ".py":
-        raise CosmapModelException(f"The model file should be a python file, found {model_file.suffix}")
-    
-    if model_name in get_known_models().keys() and not overwrite:
-        raise CosmapModelException(f"The model '{model_name}' already exists! Set overwrite = True to bypass")
-    
-    folder_path = model_file.parents[0]
-    transformation_path = folder_path / "transformations.toml"
-    if not transformation_path.exists():
-        raise CosmapModelException(f"Could not find the transformations config file {transformation_path}")
-
-    sys.path.append(str(model_file.parents[0]))
-    mod = import_module(model_file.stem)
-    model = getattr(mod, f"{model_name}Parameters")
-    verify_model(folder_path, mod, model)
-    add_new_model(model_file, model_name)
-
-
-def uninstall_analysis(model_name):
-    known_models = get_known_models()
-    if not model_name in known_models:
-       raise CosmapModelException(f"Model '{model_name}' does not exist!") 
-    known_models.pop(model_name)
-    write_models(known_models)
 
 def write_models(models: dict):
     output_file = locations.COSMAP_CONFIG_LOCATION / "known_models.json"

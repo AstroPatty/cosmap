@@ -1,0 +1,21 @@
+{
+    "help": "When defining a new analysis, we expect a certain set of files. This is a list of those files.",
+    "files": {
+        "transformations.json": {
+            "help": "This file contains the transformations that will be applied to the data, and a description of how they fit together.",
+            "required": true
+        },
+        "parameters.json": {
+            "help": "This file contains overwrites of the basic Cosmap parameters. For example, the output that will be generated.",
+            "required": true
+        },
+        "transformations.py": {
+            "help": "This file contains the actual code that will be executed. It contains definitions of all the transformations",
+            "required": true
+        },
+        "config.py": {
+            "help": "This file contiains the pydantic models that define the configuration data that is unique to this particular analysis.",
+            "required": true
+        }
+    }
+}

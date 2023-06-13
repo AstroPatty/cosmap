@@ -18,7 +18,7 @@ def install_analysis(path: Path, overwrite: bool = False, name = None):
     The path should point to a python file where the analysis configuation is defined.
     """
     try:
-        p  = Path(path)
+        p  = Path(path).resolve()
     except ValueError:
         raise ValueError(f"Could not parse the path {path}")
     cmds.install_analysis(p, overwrite = overwrite, name = name)
