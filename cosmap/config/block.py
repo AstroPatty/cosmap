@@ -48,7 +48,7 @@ def create_parameter_block(name: str, template: BaseModel, values: dict, sub_blo
             else:  
                 field_value = values.get(field_name, None)
                 if field_value is not None:
-                    cls, parsed_parameter_value = handle_single_value(field.type_, values.get(field_name, {}))
+                    cls, parsed_parameter_value = handle_single_value(field.outer_type_, values.get(field_name, {}))
                     parameter_values.update({field_name: parsed_parameter_value})
                     new_model_input.update({field_name: (cls, ...)})
                 
@@ -58,7 +58,7 @@ def create_parameter_block(name: str, template: BaseModel, values: dict, sub_blo
 
         elif inspect.isclass(field.type_) and issubclass(field.type_, BaseModel):
             #This field is a sub-block   
-            template_, values_ = create_parameter_block(field_name, field.type_, values.get(field_name, {}), sub_block = True)
+            template_, values_ = create_parameter_block(field_name, field.outer_type_, values.get(field_name, {}), sub_block = True)
             parameter_values.update({field_name: values_})
             new_model_input.update({field_name: (template_, ...)})
 
@@ -67,14 +67,16 @@ def create_parameter_block(name: str, template: BaseModel, values: dict, sub_blo
             if field_name in values:
                 parameter_values.update({field_name: values[field_name]})
             if field.required:
-                new_model_input.update({field_name: (field.type_, ...)})
+                new_model_input.update({field_name: (field.outer_type_, ...)})
             else:
-                new_model_input.update({field_name: (field.type_, field.default)})
+                new_model_input.update({field_name: (field.outer_type_, field.default)})
+
             new_model_validators.update({field_name: field.validators})
 
     new_template = create_model(name, **new_model_input, __validators__=new_model_validators, __config__=template.Config)
     if sub_block:
         return new_template, parameter_values
+    print(parameter_values)
     block = new_template(**parameter_values)
     return block
 

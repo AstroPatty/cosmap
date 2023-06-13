@@ -5,6 +5,7 @@ from cosmap.analysis.sampler import Sampler
 from cosmap.dataset import get_dataset
 from cosmap.analysis import scheduler, sampler
 from cosmap.locations import ROOT
+from cosmap.output import get_output_handler
 from networkx import DiGraph
 from networkx.algorithms.dag import is_directed_acyclic_graph
 import json
@@ -69,8 +70,8 @@ class CosmapAnalysis:
             
             self.parameters = self.update_parameters(self.parameters, new_param_input)
 
-        debug(self.parameters)
-        self.prepare_output()
+
+        self.output_handler = get_output_handler(self.parameters.output_parameters)
         exit()
 
         new_blocks = [k for k in self.parameters.analysis_parameters.transformations.keys() if k not in self.ignore_blocks and k[0].isupper()]
@@ -81,11 +82,17 @@ class CosmapAnalysis:
 
     @staticmethod
     def update_parameters(old_paramters, new_params: dict):
-        p_obj = old_paramters
         for name, values in new_params.items():
+            p_obj = old_paramters
             param_path = name.split(".")
             for p in param_path[:-1]:
                 p_obj = getattr(p_obj, p)
+            if not hasattr(p_obj, param_path[-1]):
+                #We're attaching extra parameters. The block must
+                #explicitly allow this, or Pydantic will throw an error
+                setattr(p_obj, param_path[-1], values)
+                continue
+
             if isinstance(getattr(p_obj, param_path[-1]), BaseModel):
                 block = getattr(p_obj, name)
                 updated_block = CosmapAnalysis.update_parameters(block, values)
@@ -94,8 +101,6 @@ class CosmapAnalysis:
                 setattr(p_obj, param_path[-1], values)
         return old_paramters
     
-    def prepare_output(self):
-        pass
 
     def run(self, *args, **kwargs):
         raise NotImplementedError

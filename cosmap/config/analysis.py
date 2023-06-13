@@ -7,6 +7,7 @@ from cosmap.config.models import sky
 import astropy.units as u
 from astropy.coordinates import SkyCoord
 from typing import Dict, Callable, List
+from pydantic import Extra
 """
 The parameter block is a top-level model that manages configuration
 for a project, or some piece of the project. The parameter block
@@ -83,7 +84,8 @@ class CosmapOutputParameters(BaseModel):
     base_output_path = Path.cwd()
     output_paths: Path | dict = None
     output_formats: str | dict = "dataframe"
-
+    class Config:
+        extra = Extra.allow
 class CosmapParameters(BaseModel):
     """
     The CosmapParameters is the top-level parameter block

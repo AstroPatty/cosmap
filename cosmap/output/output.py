@@ -5,7 +5,16 @@ from multiprocessing import Lock
 from pathlib import Path
 from typing import List, Union
 import pandas as pd
+from pydantic import BaseModel
 from . import parser
+
+
+def get_output_handler(output_paramters: BaseModel):
+    if output_paramters.output_formats == "dataframe":
+        if output_paramters.output_paths is None:
+            return csvOutputHandler(output_paramters.base_output_path)
+        else:
+            return MultiCsvOutputHandler(output_paramters.output_paths)
 
 class outputHandler(ABC):
 
