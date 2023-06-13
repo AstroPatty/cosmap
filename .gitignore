@@ -1,5 +1,5 @@
-# Per-installation configuration file
-cosmap/config/known_models.json
+# Per-installation configuration files
+cosmap/analysis/known_analyses.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
