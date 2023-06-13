@@ -2,6 +2,10 @@ from cosmap.config.block import create_analysis_block
 from cosmap.analysis.analysis import CosmapAnalysis
 from devtools import debug
 from pydantic.utils import deep_update
+
+class CosmapConfigException(Exception):
+    pass
+
 def build_analysis_object(analysis_data, run_configuration, **kwargs):
     """
     Construct an analysis object, assuming the analysis has been installed
@@ -23,7 +27,10 @@ def build_analysis_object(analysis_data, run_configuration, **kwargs):
     additional_parameters = analysis_data["parameters"]
     run_configuration.update({"definition_module": module,"transformations": transformations})
     config_definition = getattr(module, "config")
-    main_config_definition = getattr(config_definition, "Main")
+    try:
+        main_config_definition = getattr(config_definition, "Main")
+    except AttributeError:
+        raise CosmapConfigException(f"The analysis config for \'{module.__name__}\' does not have a 'Main' config block")
     run_configuration = deep_update(run_configuration, additional_parameters)
     block = create_analysis_block("Main", main_config_definition, run_configuration)
     block.analysis_parameters.transformations = transformations
