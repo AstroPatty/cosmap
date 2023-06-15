@@ -4,6 +4,7 @@ from cosmap.analysis import manage
 from cosmap.analysis.utils import build_analysis_object
 import toml
 import json
+from loguru import logger
 
 def install_analysis(analysis_path: Path, overwrite = False, name = None):
     manage.install_analysis(analysis_path, name)
@@ -25,9 +26,14 @@ def run_analysis(analysis_path: Path):
         base_analysis = config["base-analysis"]
     except KeyError:
         raise KeyError(f"Could not find a base analysis in the config file {analysis_path}")
+    
+    logger.info(f"Running analysis {base_analysis}")
+    logger.info(f"Loading analysis files for {base_analysis}")
     analysis_data = manage.load_analysis_files(base_analysis)
+    logger.info(f"Preparing analysis {analysis_path.stem}")
     analysis_object = build_analysis_object(analysis_data, config)
-    #analysis_object.run()
+    logger.info(f"Running analysis {analysis_path.stem} ")
+    analysis_object.run()
 
 
 def list_analyses():

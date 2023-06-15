@@ -1,5 +1,5 @@
 
-from cosmap.config.models import model
+from cosmap.config import model
 
 
 class CosmapConfigException(Exception):

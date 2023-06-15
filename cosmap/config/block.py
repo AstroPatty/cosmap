@@ -76,7 +76,6 @@ def create_parameter_block(name: str, template: BaseModel, values: dict, sub_blo
     new_template = create_model(name, **new_model_input, __validators__=new_model_validators, __config__=template.Config)
     if sub_block:
         return new_template, parameter_values
-    print(parameter_values)
     block = new_template(**parameter_values)
     return block
 

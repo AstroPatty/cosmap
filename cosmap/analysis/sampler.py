@@ -7,6 +7,7 @@ import astropy.units as u
 import builtins
 import numpy as np
 import matplotlib.pyplot as plt
+from astropy.coordinates import SkyCoord
 class CosmapSamplerException(Exception):
     pass
 
@@ -110,6 +111,7 @@ class RandomSampler(CosmapSampler):
     def generate_samples(self, n_samples):
         vals = self._sampler.uniform(self._low_sampler_range, self._high_sampler_range, size=(n_samples, 2))
         coords = self.samples_to_radec(vals[:,0], vals[:,1])
+        coords = SkyCoord(coords[0], coords[1], unit="deg")
         return coords
 
     def initialize_sampler(self):

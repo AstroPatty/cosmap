@@ -3,9 +3,10 @@ from cosmap.analysis.analysis import CosmapAnalysis
 from devtools import debug
 from pydantic.utils import deep_update
 from pydantic import BaseModel
-
+from loguru import logger
 class CosmapConfigException(Exception):
     pass
+
 
 def build_analysis_object(analysis_data, run_configuration, **kwargs):
     """
@@ -55,3 +56,103 @@ def load_transformations(analysis_parameters: BaseModel, block_ = None):
             block_output.update({transformation: getattr(block_definition, transformation)})
         output.update({name: block_output})
     return output
+
+def get_task_parameters(parameters: BaseModel, block: str, task: str, previous_results = {}):
+    """
+    This method should return a dictionary of parameters that are needed to run the task. It will
+    also search through previous results to see if any of them are required for the task. If so, it
+    will add them to the dictionary of parameters. This method should be called by the subclass.
+    """
+    analysis_parameters = parameters.analysis_parameters
+    needed_parameters = analysis_parameters.transformations[block][task].get("needed-parameters", [])
+    optional_parameters = analysis_parameters.transformations[block][task].get("optional-parameters", [])
+    dependencies = analysis_parameters.transformations[block][task].get("dependencies", [])
+    parameter_values = {}
+    
+
+    if type(dependencies) == list:
+        parameter_values.update({p: previous_results[p] for p in dependencies})
+    elif type(dependencies) == dict:
+        for name, alias in dependencies.items():
+            parameter_values.update({alias: previous_results[name]})
+    
+    
+    if needed_parameters == "all":
+        parameter_values.update({"parameters": analysis_parameters})
+        return parameter_values
+    
+    all_parameters = needed_parameters + optional_parameters
+    for param in all_parameters:
+        param_path = param.split(".")
+        if param_path[0] == "Main":
+            obj = parameters
+        else:
+            obj = analysis_parameters
+            param_path.insert(0, "analysis_parameters")
+        for p in param_path[1:]:
+            try:
+                obj = getattr(obj, p)
+
+            except AttributeError:
+                if param in needed_parameters:
+                    raise CosmapConfigException(f"Missing parameter {param}!")
+                else: #this is an optional parameter. I know that the "else" is not necessary but this is more readable, sue me
+                    logger.info(f"No value found for optional parameter {param_path[-1]}... skipping")
+                    obj = None
+                    break
+
+
+        parameter_values.update({param_path[-1]: obj})
+    
+    return parameter_values
+
+
+def get_task_parameters_from_dictionary(parameters: BaseModel, block: str, task: str, previous_results = {}):
+    """
+    This method should return a dictionary of parameters that are needed to run the task. It will
+    also search through previous results to see if any of them are required for the task. If so, it
+    will add them to the dictionary of parameters. This method should be called by the subclass.
+    """
+    analysis_parameters = parameters['analysis_parameters']
+    needed_parameters = analysis_parameters['transformations'][block][task].get("needed-parameters", [])
+    optional_parameters = analysis_parameters['transformations'][block][task].get("optional-parameters", [])
+    dependencies = analysis_parameters['transformations'][block][task].get("dependencies", [])
+    parameter_values = {}
+    
+
+
+    if type(dependencies) == list:
+        parameter_values.update({p: previous_results[p] for p in dependencies})
+    elif type(dependencies) == dict:
+        for name, alias in dependencies.items():
+            parameter_values.update({alias: previous_results[name]})
+    
+    
+    if needed_parameters == "all":
+        parameter_values.update({"parameters": analysis_parameters})
+        return parameter_values
+    
+    all_parameters = needed_parameters + optional_parameters
+    for param in all_parameters:
+        param_path = param.split(".")
+        if param_path[0] == "Main":
+            obj = parameters
+        else:
+            obj = analysis_parameters
+            param_path.insert(0, "analysis_parameters")
+        for p in param_path[1:]:
+            try:
+                obj = obj[p]
+
+            except KeyError:
+                if param in needed_parameters:
+                    raise CosmapConfigException(f"Missing parameter {param}!")
+                else: #this is an optional parameter. I know that the "else" is not necessary but this is more readable, sue me
+                    logger.info(f"No value found for optional parameter {param_path[-1]}... skipping")
+                    obj = None
+                    break
+
+
+        parameter_values.update({param_path[-1]: obj})
+    
+    return parameter_values

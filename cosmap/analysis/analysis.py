@@ -1,32 +1,18 @@
 from __future__ import annotations
-from typing import  Dict
-from cosmap.analysis.transformation import Transformation
 from cosmap.analysis.sampler import Sampler
 from cosmap.dataset import get_dataset
-from cosmap.analysis import scheduler, sampler
+from cosmap.analysis task
 from cosmap.locations import ROOT
 from cosmap.output import get_output_handler
 from cosmap.analysis import dependencies
-from networkx import DiGraph
-from networkx.algorithms.dag import is_directed_acyclic_graph
-import json
-import uuid
-from dask.distributed import Client, get_client
-from loguru import logger
-from devtools import debug
+from dask.distributed import Client
 from pydantic import BaseModel
-from types import ModuleType
-from typing import List
 from cosmap.analysis.setup import handle_setup
+
 class AnalysisException(Exception):
     pass
 
 
-def get_scheduler(scheduler_name: str):
-    try:
-        return getattr(scheduler, scheduler_name)()
-    except AttributeError:
-        raise AnalysisException(f"Could not find the scheduler {scheduler_name}")
     
 class CosmapAnalysis:
     """
@@ -54,7 +40,7 @@ class CosmapAnalysis:
     def setup(self, *args, **kwargs):
         self.verify_analysis()
         self.sampler.initialize_sampler()
-        self.sampler.generate_samples(10000)
+        samples = self.sampler.generate_samples(self.parameters.sampling_parameters.n_samples)
         blocks = []
         if "Setup" in self.parameters.analysis_parameters.transformations:
             new_params = handle_setup(self.parameters, self.parameters.analysis_parameters.transformations)
@@ -70,15 +56,14 @@ class CosmapAnalysis:
             
             self.parameters = self.update_parameters(self.parameters, new_param_input)
 
+        transformations = self.parameters.analysis_parameters.transformations["Main"]
 
+        self.needed_datatypes = [t.get("needed-data", []) for t in transformations.values()]
+        self.needed_datatypes = set([item for sublist in self.needed_datatypes for item in sublist])
         self.output_handler = get_output_handler(self.parameters.output_parameters)
-        exit()
-
-        new_blocks = [k for k in self.parameters.analysis_parameters.transformations.keys() if k not in self.ignore_blocks and k[0].isupper()]
-        blocks.append(new_blocks)
-
-        if blocks:
-            self.scheduler.schedule(blocks)
+        self.client = Client(n_workers = self.parameters.threads - 1, threads_per_worker = 1)
+        self.client.register_worker_plugin(self.dataset_plugin)
+        self.tasks = task.generate_tasks(self.client, self.parameters, self.main_graph, self.needed_datatypes, samples)
 
     def verify_analysis(self):
         """
@@ -90,7 +75,7 @@ class CosmapAnalysis:
         transformations = self.parameters.analysis_parameters.transformations.get("Main", {})
         if not transformations:
             raise AnalysisException("No transformations defined in transformations.json!")
-        graph = dependencies.build_dependency_graphs(self.parameters.analysis_parameters.transformations, block_="Main")
+        self.main_graph = dependencies.build_dependency_graphs(self.parameters.analysis_parameters.transformations, block_="Main")["Main"]
         #Note, the build_dependency_graphs function will raise an exception if the graph is not a DAG
         #So we don't need to check that here
         definitions = self.parameters.analysis_parameters.definition_module.transformations
@@ -127,4 +112,8 @@ class CosmapAnalysis:
     
 
     def run(self, *args, **kwargs):
-        raise NotImplementedError
+        for chunk in self.tasks:
+            results = self.client.gather(chunk)
+            #Note: this is an array of arrays, so we flatten it
+            results = [item for sublist in results for item in sublist]
+            self.output_handler.take_output(results)
