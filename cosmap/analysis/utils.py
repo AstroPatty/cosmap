@@ -2,6 +2,7 @@ from cosmap.config.block import create_analysis_block
 from cosmap.analysis.analysis import CosmapAnalysis
 from devtools import debug
 from pydantic.utils import deep_update
+from pydantic import BaseModel
 
 class CosmapConfigException(Exception):
     pass
@@ -37,3 +38,20 @@ def build_analysis_object(analysis_data, run_configuration, **kwargs):
     analysis_object = CosmapAnalysis(analysis_paramters=block, **kwargs)
     return analysis_object
 
+def load_transformations(analysis_parameters: BaseModel, block_ = None):
+    output = {}
+    definition_module = getattr(analysis_parameters.definition_module, "transformations")
+    for name, block in analysis_parameters.transformations.items():
+        
+        if block is not None and name != block_:
+            continue
+        block_output = {}
+        try:
+            block_definition = getattr(definition_module, name)
+        except AttributeError:
+            raise CosmapConfigException(f"Could not find the definitions for block {name}!")
+        
+        for transformation in block:
+            block_output.update({transformation: getattr(block_definition, transformation)})
+        output.update({name: block_output})
+    return output

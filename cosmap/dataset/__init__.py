@@ -2,7 +2,7 @@ from abc import ABC
 from typing import Protocol, runtime_checkable
 from astropy.coordinates import SkyCoord
 import astropy.units as u
-from .wrappers import get_dataset
+from .plugins import get_dataset
 
 __all__ = ["CosmapDataset", "get_dataset"]
 

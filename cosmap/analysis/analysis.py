@@ -17,6 +17,7 @@ from devtools import debug
 from pydantic import BaseModel
 from types import ModuleType
 from typing import List
+from cosmap.analysis.setup import handle_setup
 class AnalysisException(Exception):
     pass
 
@@ -46,7 +47,7 @@ class CosmapAnalysis:
     def __init__(self, analysis_paramters: BaseModel, **kwargs):
         self.parameters = analysis_paramters
         self.sampler = Sampler(self.parameters.sampling_parameters)
-        self.dataset = get_dataset(self.parameters.dataset_parameters)
+        self.dataset_plugin = get_dataset(self.parameters.dataset_parameters)
         self.setup()
  
 
@@ -56,9 +57,7 @@ class CosmapAnalysis:
         self.sampler.generate_samples(10000)
         blocks = []
         if "Setup" in self.parameters.analysis_parameters.transformations:
-            single_scheduler = get_scheduler("SingleThreadedScheduler")
-            single_scheduler.initialize(self.parameters, block = "Setup")
-            new_params = single_scheduler.run_block("Setup")
+            new_params = handle_setup(self.parameters, self.parameters.analysis_parameters.transformations)
             new_param_input = {}
             new_analysis_parameters = {}
             for name, block in new_params.items():
