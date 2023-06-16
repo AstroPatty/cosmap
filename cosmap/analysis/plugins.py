@@ -1,28 +1,32 @@
-from cosmap.analyses import analysis_old
-from abc import ABC, abstractmethod 
-from astropy.coordinates import SkyCoord
-from heinlein.region import BaseRegion
-from heinlein.dataset import dataset
+from cosmap.analysis import utils
 
+class CosmapPluginError(Exception):
+    pass
 
-def get_plugins(plugins: list):
-    return {t: triggers[t] for t in plugins}
+allowed_types = ["worker-plugins"]
 
-class DatasetProxy:
-    allowed_fs = ["cone_search"]
-    requires = ["dataset"]
+def verify_plugins(plugins, definitions):
+    try:
+        plugin_definitions = definitions.plugins
+    except AttributeError:
+        raise CosmapPluginError("Unable to find plugin definitions! Check that you have"\
+                                " a 'plugins.py' file in your analysis directory.")
+    missing = []
+    for plugin_type, plugins_of_type in plugins.items():
+        if plugin_type not in allowed_types:
+            raise CosmapPluginError(f"Found unknown plugin type {plugin_type}!")
+        for plugin_name in plugins_of_type:
+            try:
+                getattr(plugin_definitions, plugin_name)
+            except AttributeError:
+                raise CosmapPluginError(f"Unable to find definition of plugin '{plugin_name}' in plugins.py")
 
-    def __init__(self, dataset: dataset.Dataset, max_requests = 1):
-        self.max_requests = max_requests
-        self.dataset = dataset
-        self.n = 0
+def initialize_plugins(analysis_object, plugins, parameters):
+    if "worker-plugins" in plugins:
+        initialize_worker_plugins(analysis_object, plugins["worker-plugins"], parameters)
 
-    def __getattr__(self, __key, *args, **kwargs):
-        if self.n >= self.max_requests:
-            raise analysis_old.CosmapAnalysisError("This dataset proxy object has already used all its allowed requests")
-        if __key in self.allowed_fs:
-            return getattr(self.dataset, __key)
-        else:
-            raise AttributeError(f"This dataset proxy does not allow usage of the function {__key}")
-
-triggers = {"request_comparison_data": DatasetProxy}
+def initialize_worker_plugins(analysis_object, plugins, parameters):
+    for name, plugin_data in plugins.items():
+        parameter_values = utils.get_parameters_by_name(parameters, parameter_names=plugin_data.get("needed-parameters", []))
+        plugin_object = getattr(parameters.analysis_parameters.definition_module.plugins, name)(**parameter_values)
+        analysis_object.client.register_worker_plugin(plugin_object)

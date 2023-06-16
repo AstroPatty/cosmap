@@ -16,6 +16,14 @@
         "config.py": {
             "help": "This file contiains the pydantic models that define the configuration data that is unique to this particular analysis.",
             "required": true
+        },
+        "plugins.json": {
+            "help": "Plugin configuration",
+            "required": false
+        },
+        "plugins.py": {
+            "help": "Plugins",
+            "required": false
         }
     }
 }

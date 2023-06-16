@@ -58,6 +58,8 @@ class CosmapSamplingParameters(BaseModel):
     sample_dimensions: sky.AstropyUnitfulParamter = None
     sample_type: str = "Random"
     n_samples: int = 1000
+    dtypes: list = []
+
     class Config:
         arbitrary_types_allowed = True
 

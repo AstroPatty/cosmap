@@ -36,7 +36,7 @@ known_wrappers = {
 def get_dataset(dataset_parameters: BaseModel):
     return _get_dataset(**dataset_parameters.dict())
 
-def _get_dataset(dataset_wrapper: str, dataset_name: str):
+def _get_dataset(dataset_wrapper: str, dataset_name: str, *args, **kwargs):
     """
     Get a dataset from a given wrapper. In the future, we will
     support custom wrappers.

@@ -27,6 +27,7 @@ def build_analysis_object(analysis_data, run_configuration, **kwargs):
     module = analysis_data["module"]
     transformations = analysis_data["transformations"]
     additional_parameters = analysis_data["parameters"]
+    plugins = analysis_data.get("plugins", {})
     run_configuration.update({"definition_module": module,"transformations": transformations})
     config_definition = getattr(module, "config")
     try:
@@ -36,7 +37,7 @@ def build_analysis_object(analysis_data, run_configuration, **kwargs):
     run_configuration = deep_update(run_configuration, additional_parameters)
     block = create_analysis_block("Main", main_config_definition, run_configuration)
     block.analysis_parameters.transformations = transformations
-    analysis_object = CosmapAnalysis(analysis_paramters=block, **kwargs)
+    analysis_object = CosmapAnalysis(analysis_paramters=block, plugins = plugins, **kwargs)
     return analysis_object
 
 def load_transformations(analysis_parameters: BaseModel, block_ = None):
@@ -57,6 +58,33 @@ def load_transformations(analysis_parameters: BaseModel, block_ = None):
         output.update({name: block_output})
     return output
 
+
+def get_parameters_by_name(parameters: BaseModel, parameter_names: list):
+    parameter_values = {}
+    for param in parameter_names:
+        param_path = param.split(".")
+        if param_path[0] == "Main":
+            obj = parameters
+        else:
+            obj = parameters.analysis_parameters
+            param_path.insert(0, "analysis_parameters")
+        for p in param_path[1:]:
+            try:
+                obj = getattr(obj, p)
+
+            except AttributeError:
+                print(p)
+                if param in parameter_names:
+                    raise CosmapConfigException(f"Missing parameter {param}!")
+                else: #this is an optional parameter. I know that the "else" is not necessary but this is more readable, sue me
+                    logger.info(f"No value found for optional parameter {param_path[-1]}... skipping")
+                    obj = None
+                    break
+
+
+        parameter_values.update({param_path[-1]: obj})
+    
+    return parameter_values
 def get_task_parameters(parameters: BaseModel, block: str, task: str, previous_results = {}):
     """
     This method should return a dictionary of parameters that are needed to run the task. It will
