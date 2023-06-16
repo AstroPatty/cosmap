@@ -1,7 +1,7 @@
 from __future__ import annotations
 from cosmap.analysis.sampler import Sampler
 from cosmap.dataset import get_dataset
-from cosmap.analysis task
+from cosmap.analysis import task
 from cosmap.locations import ROOT
 from cosmap.output import get_output_handler
 from cosmap.analysis import dependencies

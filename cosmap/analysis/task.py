@@ -9,6 +9,8 @@ import networkx as nx
 from cosmap.analysis import utils
 from functools import partial
 from devtools import debug
+from cosmap import analysis
+from loguru import logger
 
 def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, needed_dtypes: list, samples: list, chunk_size: int = 100):
     """
@@ -60,7 +62,11 @@ def main_task(coordinates, dtypes, pipeline_function, *args, **kwargs):
     sample_generator = dataset.sample_generator(coordinates, dtypes = dtypes)
     results = []
     for sample in sample_generator:
-        results.append(pipeline_function(data = sample))
+        try:
+            results.append(pipeline_function(data = sample))
+        except analysis.CosmapBadSampleError:
+            logger.warning("Bad sample detected. Skipping...")
+            continue
     return results
 
 

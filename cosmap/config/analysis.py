@@ -2,12 +2,7 @@ from __future__ import annotations
 from pydantic import BaseModel, Field, validator
 from pathlib import Path
 from types import ModuleType
-from dask.distributed import get_client
 from cosmap.config.models import sky
-import astropy.units as u
-from astropy.coordinates import SkyCoord
-from typing import Dict, Callable, List
-from pydantic import Extra
 """
 The parameter block is a top-level model that manages configuration
 for a project, or some piece of the project. The parameter block
