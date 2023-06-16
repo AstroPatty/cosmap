@@ -8,7 +8,7 @@ from cosmap.analysis import dependencies
 from dask.distributed import Client
 from pydantic import BaseModel
 from cosmap.analysis.setup import handle_setup
-
+from loguru import logger
 class AnalysisException(Exception):
     pass
 
@@ -112,8 +112,12 @@ class CosmapAnalysis:
     
 
     def run(self, *args, **kwargs):
+        n_completed = 0
         for chunk in self.tasks:
             results = self.client.gather(chunk)
             #Note: this is an array of arrays, so we flatten it
             results = [item for sublist in results for item in sublist]
-            self.output_handler.take_output(results)
+            n_completed += len(results)
+            self.output_handler.take_outputs(results)
+            logger.info(f"Completed {n_completed} of {self.parameters.sampling_parameters.n_samples} samples")
+            self.output_handler.write_output()

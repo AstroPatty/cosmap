@@ -77,7 +77,7 @@ class dataFrameOutputParser(cosmapOutputParser):
         
         def get(self, *args, **kwargs):
             input_series = {c: self.series[c][:self.tally] for c in self.series}
-            return pd.DataFrame.from_dict(input_series, orient = 'columns', dtype = self.dtypes)
+            return pd.DataFrame.from_dict(input_series, orient = 'columns')
         
         def clear(self, *args, **kwargs):
             self.tally = 0

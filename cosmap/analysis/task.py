@@ -11,8 +11,9 @@ from functools import partial
 from devtools import debug
 from cosmap import analysis
 from loguru import logger
+from astropy.coordinates import SkyCoord
 
-def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, needed_dtypes: list, samples: list, chunk_size: int = 100):
+def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, needed_dtypes: list, samples: list, chunk_size: int = 10):
     """
     
 
@@ -24,9 +25,14 @@ def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, 
     n_chunks = math.ceil(len(samples) / chunk_size)
     n_workers = len(client.nthreads())
     chunks = np.array_split(samples, n_chunks)
+    sample_shape = parameters.sampling_parameters.sample_shape
+    sample_dimensions = parameters.sampling_parameters.sample_dimensions
+
+    if sample_shape != "Circle":
+        raise NotImplementedError("Only circular samples are currently supported")
     for c in chunks:
         splits = np.array_split(c, n_workers)
-        f = partial(main_task, dtypes = needed_dtypes, pipeline_function = pipeline_function)
+        f = partial(main_task, dtypes = needed_dtypes, sample_shape = "cone", sample_dimensions = max(sample_dimensions), pipeline_function = pipeline_function)
         tasks = client.map(f, splits)
         yield tasks
 
@@ -56,21 +62,21 @@ def build_pipeline(parameters, dependency_graph):
     )
     return pipeline_function    
 
-def main_task(coordinates, dtypes, pipeline_function, *args, **kwargs):
+def main_task(coordinates, sample_shape, sample_dimensions, dtypes, pipeline_function, *args, **kwargs):
     worker = get_worker()
     dataset = worker.dataset
-    sample_generator = dataset.sample_generator(coordinates, dtypes = dtypes)
+    sample_generator = dataset.sample_generator(coordinates, dtypes = dtypes, sample_type = sample_shape, sample_dimensions = sample_dimensions)
     results = []
-    for sample in sample_generator:
+    for region, sample in sample_generator:
         try:
-            results.append(pipeline_function(data = sample))
+            results.append(pipeline_function(data = sample, sample_region = region))
         except analysis.CosmapBadSampleError:
             logger.warning("Bad sample detected. Skipping...")
             continue
     return results
 
 
-def pipeline(data: dict, parameters: dict, transformations: dict, transformation_definitions: ModuleType, task_order: list):
+def pipeline(data: dict, sample_region: SkyCoord, parameters: dict, transformations: dict, transformation_definitions: ModuleType, task_order: list):
     outputs = {}
 
     for task in task_order:
@@ -78,6 +84,7 @@ def pipeline(data: dict, parameters: dict, transformations: dict, transformation
         inputs = {n: data[n] for n in needed_data}
         needed_parameters = utils.get_task_parameters_from_dictionary(parameters, "Main", task, outputs)
         inputs.update(needed_parameters)
+        inputs.update({"sample_region": sample_region})
         result = getattr(transformation_definitions, task)(**inputs)
         outputs.update({task: result})
     return outputs[task_order[-1]]

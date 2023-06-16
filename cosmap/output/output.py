@@ -26,7 +26,10 @@ class outputHandler(ABC):
     @abstractmethod
     def take_output(self, output, *args, **kwargs):
         pass
-
+    
+    @abstractmethod
+    def take_outputs(self, outputs: List[dict], *args, **kwargs):
+        pass
 
 class dataframeOutputHandler(outputHandler):
 
@@ -36,11 +39,15 @@ class dataframeOutputHandler(outputHandler):
 
     def take_output(self, output: dict, *args, **kwargs):
         self._parser.append(output)
+    
+    def take_outputs(self, outputs: List[dict], *args, **kwargs):
+        for output in outputs:
+            self.take_output(output, *args, **kwargs)
 
 class multiDataframeOutputHandler(outputHandler):
 
     def __init__(self, paths: dict, writer: type, writer_config: dict = {}):
-        self._hanlders = {k: dataframeOutputHandler(path = v, writer = writer, writer_config = writer_config) for k, v in paths.items()}
+        self._handlers = {k: dataframeOutputHandler(path = v, writer = writer, writer_config = writer_config) for k, v in paths.items()}
     
     def take_output(self, output: dict, *args, **kwargs):
         """
@@ -48,6 +55,10 @@ class multiDataframeOutputHandler(outputHandler):
         """
         for k, row in output.items():
             self._handlers[k].take_output(row)
+
+    def take_outputs(self, outputs: List[dict], *args, **kwargs):
+        for output in outputs:
+            self.take_output(output, *args, **kwargs)
 
     def write_output(self, *args, **kwargs):
         for handler in self._handlers.values():
