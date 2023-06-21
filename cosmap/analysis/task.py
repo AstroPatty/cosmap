@@ -11,7 +11,7 @@ from cosmap import analysis
 from loguru import logger
 from astropy.coordinates import SkyCoord
 
-def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, needed_dtypes: list, samples: list, chunk_size: int = 10):
+def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, needed_dtypes: list, samples: list, chunk_size: int = 10, plugins = {}):
     """
     
 
@@ -19,6 +19,16 @@ def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, 
     
     
     """
+    if "task_generator" in plugins:
+        if len(plugins["task_generator"]) > 1:
+            raise Exception("Found multiple task generator plugins! Only one is allowed.")
+        plugin_name, plugin_data = list(plugins["task_generator"].items())[0]
+        plugin_object = plugin_data["plugin"]
+        plugin_parameters = {"client": client, "parameters": parameters, "dependency_graph": dependency_graph, "needed_dtypes": needed_dtypes, "samples": samples, "chunk_size": chunk_size}
+        plugin_parameters.update(plugin_data["parameters"])
+        g = plugin_object(**plugin_parameters)
+        for t in g:
+            yield t    
     pipeline_function = build_pipeline(parameters, dependency_graph)
     n_chunks = math.ceil(len(samples) / chunk_size)
     n_workers = len(client.nthreads())

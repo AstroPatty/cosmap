@@ -11,7 +11,14 @@ from astropy.coordinates import SkyCoord
 class CosmapSamplerException(Exception):
     pass
 
-def Sampler(sampler_parameters: BaseModel):
+def Sampler(sampler_parameters: BaseModel, plugin = {}):
+    if plugin:
+        if len(plugin) > 1:
+            raise CosmapSamplerException("Found multiple sampler plugins! Only one is allowed.")
+        plugin_name, plugin_data = list(plugin.items())[0]
+        plugin_object = plugin_data["plugin"]
+        plugin_parameters = plugin_data["parameters"]
+        return plugin_object(sampler_parameters, **plugin_parameters)
     sampler_type = sampler_parameters.sample_type
     match sampler_type:
         case "Random":
@@ -132,3 +139,5 @@ class GridSampler(CosmapSampler):
         evenly spaced. 
         """
         pass
+
+

@@ -34,9 +34,8 @@ class CosmapAnalysis:
     ignore_blocks = ["Setup", "Teardown"]
     def __init__(self, analysis_paramters: BaseModel, plugins = {}, **kwargs):
         self.parameters = analysis_paramters
-        self.sampler = Sampler(self.parameters.sampling_parameters)
-        self.dataset_plugin = get_dataset(self.parameters.dataset_parameters)
         self.plugins = plugins
+
         self.setup()
  
 
@@ -44,6 +43,11 @@ class CosmapAnalysis:
         self.verify_analysis()
         if self.plugins:
             plugins.verify_plugins(self.plugins, self.parameters.analysis_parameters.definition_module)
+            self.plugins = plugins.initialize_plugins(self, self.plugins, self.parameters)
+
+        self.dataset_plugin = get_dataset(self.parameters.dataset_parameters)
+        self.sampler = Sampler(self.parameters.sampling_parameters, self.plugins.get("sampler", {}))
+
 
         self.sampler.initialize_sampler()
         samples = self.sampler.generate_samples(self.parameters.sampling_parameters.n_samples)
@@ -70,8 +74,7 @@ class CosmapAnalysis:
         self.output_handler = get_output_handler(self.parameters.output_parameters)
         self.client = Client(n_workers = self.parameters.threads - 1, threads_per_worker = 1)
         self.client.register_worker_plugin(self.dataset_plugin)
-        plugins.initialize_plugins(self, self.plugins, self.parameters)
-        self.tasks = task.generate_tasks(self.client, self.parameters, self.main_graph, self.needed_datatypes, samples)
+        self.tasks = task.generate_tasks(self.client, self.parameters, self.main_graph, self.needed_datatypes, samples, plugins=self.plugins)
 
     def verify_analysis(self):
         """

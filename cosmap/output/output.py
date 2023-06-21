@@ -21,7 +21,8 @@ class outputHandler(ABC):
 
     def write_output(self, *args, **kwargs):
         output = self._parser.get()
-        self._writer.write_output(output, *args, **kwargs)
+        if output is not None:
+            self._writer.write_output(output, *args, **kwargs)
     
     @abstractmethod
     def take_output(self, output, *args, **kwargs):

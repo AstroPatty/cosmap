@@ -97,7 +97,6 @@ def get_task_parameters(parameters: BaseModel, block: str, task: str, previous_r
     dependencies = analysis_parameters.transformations[block][task].get("dependencies", [])
     parameter_values = {}
     
-
     if type(dependencies) == list:
         parameter_values.update({p: previous_results[p] for p in dependencies})
     elif type(dependencies) == dict:

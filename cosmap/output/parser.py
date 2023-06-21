@@ -35,6 +35,7 @@ class cosmapOutputParser(ABC):
         """
         Clear any previously parsed output.
         """
+    
 
 class dataFrameOutputParser(cosmapOutputParser):
         """
@@ -48,6 +49,7 @@ class dataFrameOutputParser(cosmapOutputParser):
             self.size = 0
             self.chunksize = chunksize
             self.initialized = False
+            self.series = {}
         
         def initialize(self, columns: list, dtypes: list):
             if dtypes is not None:
@@ -76,9 +78,10 @@ class dataFrameOutputParser(cosmapOutputParser):
                 self.series[c] = np.append(self.series[c], np.empty(self.chunksize, dtype = self.dtypes[c]))
         
         def get(self, *args, **kwargs):
-            input_series = {c: self.series[c][:self.tally] for c in self.series}
-            return pd.DataFrame.from_dict(input_series, orient = 'columns')
-        
+            if self.tally:
+                input_series = {c: self.series[c][:self.tally] for c in self.series}
+                return pd.DataFrame.from_dict(input_series, orient = 'columns')
+            return None     
         def clear(self, *args, **kwargs):
             self.tally = 0
             self.end = 0
