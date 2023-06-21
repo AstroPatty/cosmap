@@ -252,14 +252,14 @@ tqdm = ["tqdm"]
 
 [[package]]
 name = "heinlein"
-version = "0.4.10"
+version = "0.4.12"
 description = "Library for interacting with large astronomical survey datasets"
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "heinlein-0.4.10-py3-none-any.whl", hash = "sha256:abfd491bcccc35375a3e58ed1ddab62262f549232ea694b9ffbd751e93e95474"},
-    {file = "heinlein-0.4.10.tar.gz", hash = "sha256:a8a2c8eb84e17f853f53bb99a14e60495a7864d89c570eda571c0c4dc9484ec7"},
+    {file = "heinlein-0.4.12-py3-none-any.whl", hash = "sha256:67b3fa63456896bee0a3e7ed7dc43cfa6860d243104d3d8f6f4a15ff89e4e0e7"},
+    {file = "heinlein-0.4.12.tar.gz", hash = "sha256:11f445ff0017b985c0fcc7cd0b97558d8c3a272243c992368816e58331395797"},
 ]
 
 [package.dependencies]
@@ -1254,4 +1254,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "289551fb572c5a1f89159f566ad6e99815fb6028a4f68d15897b01fb905c1bb6"
+content-hash = "62e51b65dbd127331299e2014edeb6679a1bd98f5ac8da592d71ac736f07783b"
