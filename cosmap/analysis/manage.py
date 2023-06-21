@@ -38,6 +38,8 @@ def install_analysis(analysis_path: Path, name = None):
     if name in get_known_analyses():
         raise ValueError(f"Analysis {name} already installed")
     add_new_analyses(analysis_path, name)
+    print(f"Analysis \"{name}\" installed successfully")
+
 
 def uninstall_analysis(name: str):
     """

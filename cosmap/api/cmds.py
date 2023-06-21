@@ -8,7 +8,6 @@ from loguru import logger
 
 def install_analysis(analysis_path: Path, overwrite = False, name = None):
     manage.install_analysis(analysis_path, name)
-    print(f"Analysis \"{name}\" installed successfully")
 
 def uninstall_analysis(name: str):
     manage.uninstall_analysis(name)
