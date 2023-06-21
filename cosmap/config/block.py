@@ -15,12 +15,42 @@ def create_analysis_block(name, analysis_template, values):
     """
     template = CosmapParameters
     #Remove the fields that are top-level
+    ref_values = find_ref_values(values)
+    if ref_values:
+        values = resolve_references(values, ref_values)
     top_fields = {n: values[n] for n in CosmapParameters.__fields__ if n in values.keys()}
     new_analysis_paramters = {n: value for n, value in values.items() if n not in top_fields}
     analysis_block = create_parameter_block("analysis_parameters", analysis_template, new_analysis_paramters)
     top_block = create_parameter_block("Main", template, top_fields)
     top_block.analysis_parameters = analysis_block
     return top_block
+
+def find_ref_values(values):
+    rvalues = {}
+    for key, pvalue in values.items():
+        if type(pvalue) == str and pvalue.startswith("@"):
+            rvalues.update({key: pvalue})
+        elif type(pvalue) == dict:
+            found_values = find_ref_values(pvalue)
+            found_values = {f"{key}.{k}": v for k, v in found_values.items()}
+            rvalues.update(found_values)
+    return rvalues
+
+def resolve_references(values, ref_values):
+    for param_key, ref_key in ref_values.items():
+        ref_path = ref_key.strip("@").split(".")
+        obj = values
+        for p in ref_path:
+            obj = obj[p]
+        
+        param_path = param_key.split(".")
+        param_name = param_path[-1]
+        param_obj = values
+        for p in param_path[:-1]:
+            param_obj = param_obj[p]
+        param_obj[param_name] = obj
+    
+    return values
 
 def _contains_single_value_model(field):
     if type(field.type_) == types.UnionType:
@@ -41,6 +71,8 @@ def create_parameter_block(name: str, template: BaseModel, values: dict, sub_blo
     new_model_input = {}
     new_model_validators = {}
     for field_name, field in template_fields.items():
+        field_value = values.get(field_name, None)
+
         if _contains_single_value_model(field):
             #This field contains one of Cosmap's special models
             if type(field.type_) == types.UnionType:
