@@ -10,6 +10,7 @@ from functools import partial
 from cosmap import analysis
 from loguru import logger
 from astropy.coordinates import SkyCoord
+from devtools import debug
 
 def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, needed_dtypes: list, samples: list, chunk_size: int = 10, plugins = {}):
     """
@@ -45,25 +46,30 @@ def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, 
         yield tasks
 
 
-def build_pipeline(parameters, dependency_graph):
+def build_pipeline(parameters: BaseModel, dependency_graph):
     """
     Build the pipeline that will actually run the analysis for a single
     iteration. In essence, we just chain all the invidual tasks together
     to form a pipeline.
     """
+
     transformations = parameters.analysis_parameters.transformations["Main"]
-    transformation_defs = parameters.analysis_parameters.definition_module.transformations.Main
+    transformation_defs = parameters.analysis_definition.transformations.Main
     task_order = list(nx.topological_sort(dependency_graph))
     if not transformations[task_order[-1]].get("is-output"):
         raise Exception("The last task in the pipeline must be an output task!")
     elif any([transformations[t].get("output") for t in task_order[:-1]]):
         raise Exception("Only the last task in the pipeline can be an output task!")
     #We can't pass pydantic objects, so we grab the parameters here
-    param_dict = parameters.dict()
-    param_dict["analysis_parameters"].pop("definition_module")
+    param_dictionary = parameters.model_dump()
+    analysis_param_dictionary = parameters.analysis_parameters.model_dump()
+    param_dictionary.update({"analysis_parameters": analysis_param_dictionary})
+    #There's a bug in the current beta version of pydantic... Working around it
+    param_dictionary.pop("analysis_definition")
+
     pipeline_function = partial(
         pipeline,
-        parameters = param_dict,
+        parameters = param_dictionary,
         transformations = transformations,
         transformation_definitions = transformation_defs,
         task_order = task_order

@@ -1,7 +1,7 @@
-from . import geometry, sky
+from . import sky
 from typing import Protocol, Type, runtime_checkable, TypeVar
 
-__all__ = ["geometry", "sky", "SingleValueModel"]
+__all__ = ["sky", "SingleValueModel"]
 
 
 T = TypeVar('T')

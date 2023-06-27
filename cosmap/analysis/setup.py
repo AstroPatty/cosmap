@@ -15,7 +15,7 @@ def handle_setup(parameters: BaseModel, transformations: dict):
     """
     dependency_graph = dependencies.build_dependency_graph(transformations["Setup"])
     task_order = nx.topological_sort(dependency_graph)
-    transformation_objects = utils.load_transformations(parameters.analysis_parameters, block_ = "Setup")
+    transformation_objects = utils.load_transformations(parameters, block_ = "Setup")
     return run_setup(parameters, dependency_graph, transformation_objects, task_order)
 
 
@@ -86,7 +86,8 @@ def get_task_parameters(parameters: BaseModel, task: str, previous_results = {})
                     obj = None
                     break
 
-
+        if type(obj) == BaseModel:
+            obj = obj.dict()
         parameter_values.update({param_path[-1]: obj})
     
     return parameter_values

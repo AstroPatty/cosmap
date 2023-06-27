@@ -1,123 +1,89 @@
 from pydantic import BaseModel, Field, validator
 from typing import List
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import SkyCoord as SkC
 import astropy.units as u
+from typing import Annotated
+from pydantic import BeforeValidator, BaseModel, GetJsonSchemaHandler, PlainSerializer, TypeAdapter
+from pydantic.json_schema import JsonSchemaValue 
+from pydantic_core import core_schema
+from typing import Any, Callable
+from pydantic import BeforeValidator
+
+def quantity_validator(v: dict, *args, **kwargs) -> u.Quantity:
+    unit = getattr(u, v["units"])
+    return u.Quantity(v["value"], unit=unit)
+
+def quantity_serializer(quantity):
+    return {"value": quantity.value, "unit": quantity.unit.to_string()}
+
+quantity_dict_schema = core_schema.chain_schema(
+    [core_schema.dict_schema(),
+     core_schema.no_info_plain_validator_function(quantity_validator)]
+)
+
+class _QuantityAnnotation: 
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, _source_type: Any, _handler: Callable[[Any], core_schema.CoreSchema]
+    ) -> core_schema.CoreSchema:
+        return core_schema.json_or_python_schema(
+            json_schema = quantity_dict_schema,
+            python_schema = core_schema.union_schema(
+                [core_schema.is_instance_schema(u.Quantity), quantity_dict_schema]
+            ),
+            serialization=core_schema.plain_serializer_function_ser_schema(lambda x: x),
+
+        )
+
+Quantity = Annotated[u.Quantity, _QuantityAnnotation]
 
 
-class AstropyUnitfulParamter(BaseModel):
-    """
-    This Single Value Model consumes a value (or values)
-    and a unit, and produces the associated astropy quantity or
-    list of quantities. For example, the in a parameter block
-    it could looks something like this::
-
-        class MyModel(BaseModel):
-            my_parameter: AstropyUnitfulParamter
-            other_parameter: int
-            yet_another parameter: float
-    
-    And then, in the associated json file, it could look like this::
-
-        {
-            my_parameter: {
-                value: 10,
-                units: "degree"
-            }
-            other_parameter: 10,
-            yet_another_parameter: 3.5
-
-        }
-    """
-    class Config:
-        arbitrary_types_allowed = True
-
-    units: u.Unit
-    value: u.Quantity | List[u.Quantity]
-
-    @validator("units", pre=True)
-    def parse_units(cls, v):
-        try:
-            return getattr(u, v)
-        except AttributeError:
-            return v
-    
-    @validator("value", pre=True)
-    def parse_value(cls, v, values):
-        if type(v) != u.Quantity:
-            if type(v) == list:
-                a= [v*values["units"] for v in v]
-                return a
-            return v*values["units"]
+def sky_coord_validator(v: dict, *args, **kwargs) -> SkC:
+    if type(v) == SkyCoord:
         return v
+    else:
+        return SkyCoord(*v["coordinate"], unit=v["units"])
 
-    def get_value_type(self):
-        return u.Quantity | List[u.Quantity]
+def sky_coord_serializer(value):
+    print(value)
+    return {"coordinate": [value.ra.value, value.dec.value], "units": [value.ra.unit.to_string(), value.dec.unit.to_string()]}
 
-    def get_value(self):
-        return self.value
+sky_coord_dict_schema = core_schema.chain_schema(
+    [core_schema.dict_schema(),
+     core_schema.no_info_plain_validator_function(sky_coord_validator)]
+)
+
+
+class _SkyCoordAnnotation: 
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, _source_type: Any, _handler: Callable[[Any], core_schema.CoreSchema]
+    ) -> core_schema.CoreSchema:
+        return core_schema.json_or_python_schema(
+            json_schema = sky_coord_dict_schema,
+            python_schema = core_schema.union_schema(
+                [core_schema.is_instance_schema(SkC), sky_coord_dict_schema]
+            ),
+            serialization=core_schema.plain_serializer_function_ser_schema(lambda x: x),
+            
+        )
     
+    @classmethod
+    def __get_pydantic_json_schema__(
+        cls, _core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
+    ) -> JsonSchemaValue:
+        return handler(_core_schema.json_schema())
 
 
-class SkyCoordinate(BaseModel):
 
-    """
-    The SkyCoordinate model consumes a list of two values and(optionally) a
-    unit. It produces an astropy SkyCoord object. For example, in a parameter
-    block it could look something like this::
+SkyCoord = Annotated[SkC, _SkyCoordAnnotation]
 
-        class MyModel(BaseModel):
-            location: SkyCoordinate
-            other_parameter: int
-            yet_another parameter: float
+if __name__ == "__main__":
+
+    class main(BaseModel):
+        test: SkyCoord
     
-    And then, in the associated json file, it could look like this::
-        {
-            location: {
-                coordinate: [10, 20],
-                units: ["deg", "deg"]
-            },
-            other_parameter: 5
-            yet_another_parameter: 3.5
-        }
-    
-    """
-    units: List[str] = Field(
-        ["deg", "deg"],
-        min_items=1,
-        max_items=2
-    )
-    value: SkyCoord
-
-    class Config:
-        arbitrary_types_allowed = True
-
-
-    @validator("units", pre=True)
-    def handle_units(cls, v):
-        val = v if type(v) == list else [v]
-        if len(val) == 1:
-            type_ = val[0]
-            output = [type_, type_]
-        elif len(val) == 2:
-            output = val
-        else:
-            raise ValueError("Skycoord's 'units' field should have one or two items")
-        return output
-    
-    
-
-    @validator("value", pre=True)
-    def build_coordinate(cls, v, values):
-        try:
-            vals = list(v)
-            if len(vals) != 2:
-                raise TypeError
-        except TypeError:
-            raise TypeError("Skycoords 'coordinate' field should have two items")
-        sk= SkyCoord(*vals, unit=values["units"])
-        return sk
-    
-    def get_value_type(self):
-        return SkyCoord
-    def get_value(self):
-        return self.value
+    a = main(test=SkyCoord(1, 2, unit="deg"))
+    print(a.model_dump())

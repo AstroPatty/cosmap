@@ -65,15 +65,20 @@ class CosmapAnalysis:
                 new_param_input.update({"analysis_parameters": new_analysis_parameters})
             
             self.parameters = self.update_parameters(self.parameters, new_param_input)
+        
 
         transformations = self.parameters.analysis_parameters.transformations["Main"]
 
         self.needed_datatypes = [t.get("needed-data", []) for t in transformations.values()]
         self.needed_datatypes = set([item for sublist in self.needed_datatypes for item in sublist])
         self.parameters.sampling_parameters.dtypes = self.needed_datatypes
+
         self.output_handler = get_output_handler(self.parameters.output_parameters)
         self.client = Client(n_workers = self.parameters.threads - 1, threads_per_worker = 1)
         self.client.register_worker_plugin(self.dataset_plugin)
+ 
+
+
         self.tasks = task.generate_tasks(self.client, self.parameters, self.main_graph, self.needed_datatypes, samples, plugins=self.plugins)
 
     def verify_analysis(self):
@@ -89,7 +94,7 @@ class CosmapAnalysis:
         self.main_graph = dependencies.build_dependency_graphs(self.parameters.analysis_parameters.transformations, block_="Main")["Main"]
         #Note, the build_dependency_graphs function will raise an exception if the graph is not a DAG
         #So we don't need to check that here
-        definitions = self.parameters.analysis_parameters.definition_module.transformations
+        definitions = self.parameters.analysis_definition.transformations
         try:
             main_definitions = definitions.Main
         except AttributeError:
@@ -101,17 +106,16 @@ class CosmapAnalysis:
                 raise AnalysisException(f"Could not find the definition for transformation {name} in the \'Main\' block of transformations.py!")
 
     @staticmethod
-    def update_parameters(old_paramters, new_params: dict):
+    def update_parameters(old_parameters, new_params: dict):
         for name, values in new_params.items():
-            p_obj = old_paramters
+            p_obj = old_parameters
             param_path = name.split(".")
             for p in param_path[:-1]:
                 p_obj = getattr(p_obj, p)
             if not hasattr(p_obj, param_path[-1]):
                 #We're attaching extra parameters. The block must
                 #explicitly allow this, or Pydantic will throw an error
-                setattr(p_obj, param_path[-1], values)
-                continue
+                raise CosmapAnalysisExcept(f"Block {param_path[0]} does not have a parameter {param_path[-1]}!")
 
             if isinstance(getattr(p_obj, param_path[-1]), BaseModel):
                 block = getattr(p_obj, name)
@@ -119,7 +123,7 @@ class CosmapAnalysis:
                 setattr(p_obj, name, updated_block)
             else:
                 setattr(p_obj, param_path[-1], values)
-        return old_paramters
+        return old_parameters
     
 
     def run(self, *args, **kwargs):

@@ -28,7 +28,7 @@ def build_analysis_object(analysis_data, run_configuration, **kwargs):
     transformations = analysis_data["transformations"]
     additional_parameters = analysis_data["parameters"]
     plugins = analysis_data.get("plugins", {})
-    run_configuration.update({"definition_module": module,"transformations": transformations})
+    run_configuration.update({"analysis_definition": module,"transformations": transformations})
     config_definition = getattr(module, "config")
     try:
         main_config_definition = getattr(config_definition, "Main")
@@ -40,10 +40,10 @@ def build_analysis_object(analysis_data, run_configuration, **kwargs):
     analysis_object = CosmapAnalysis(analysis_paramters=block, plugins = plugins, **kwargs)
     return analysis_object
 
-def load_transformations(analysis_parameters: BaseModel, block_ = None):
+def load_transformations(parameters: BaseModel, block_ = None):
     output = {}
-    definition_module = getattr(analysis_parameters.definition_module, "transformations")
-    for name, block in analysis_parameters.transformations.items():
+    definition_module = getattr(parameters.analysis_definition, "transformations")
+    for name, block in parameters.analysis_parameters.transformations.items():
         
         if block is not None and name != block_:
             continue
@@ -96,17 +96,14 @@ def get_task_parameters(parameters: BaseModel, block: str, task: str, previous_r
     optional_parameters = analysis_parameters.transformations[block][task].get("optional-parameters", [])
     dependencies = analysis_parameters.transformations[block][task].get("dependencies", [])
     parameter_values = {}
+    if previous_results:
+        if type(dependencies) == list:
+            parameter_values.update({p: previous_results[p] for p in dependencies})
+        elif type(dependencies) == dict:
+            for name, alias in dependencies.items():
+                parameter_values.update({alias: previous_results[name]})
     
-    if type(dependencies) == list:
-        parameter_values.update({p: previous_results[p] for p in dependencies})
-    elif type(dependencies) == dict:
-        for name, alias in dependencies.items():
-            parameter_values.update({alias: previous_results[name]})
     
-    
-    if needed_parameters == "all":
-        parameter_values.update({"parameters": analysis_parameters})
-        return parameter_values
     
     all_parameters = needed_parameters + optional_parameters
     for param in all_parameters:
@@ -145,8 +142,6 @@ def get_task_parameters_from_dictionary(parameters: BaseModel, block: str, task:
     optional_parameters = analysis_parameters['transformations'][block][task].get("optional-parameters", [])
     dependencies = analysis_parameters['transformations'][block][task].get("dependencies", [])
     parameter_values = {}
-    
-
 
     if type(dependencies) == list:
         parameter_values.update({p: previous_results[p] for p in dependencies})

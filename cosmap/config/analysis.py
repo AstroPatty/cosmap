@@ -39,10 +39,10 @@ class CosmapAnalysisParameters(BaseModel):
     This class should not be instatiated directly. Instead, use the 
     create_analysis_block function in cosmap.config.block.
     """
-    definition_module: ModuleType = None
     transformations: dict = {}
     class Config:
         arbitrary_types_allowed = True
+        extra = "allow"
 class CosmapSamplingParameters(BaseModel):
     """
     Cosmap analyses always involve repeating the same process on several
@@ -51,14 +51,14 @@ class CosmapSamplingParameters(BaseModel):
     The individual sampler will be responsible for actually evaluating the inputs here.
     """
     region_shape: str = "Rectangle"
-    region_center: sky.SkyCoordinate = None
-    region_dimensions: sky.AstropyUnitfulParamter = None
-    region_bounds: sky.AstropyUnitfulParamter = None
+    region_center: sky.SkyCoord = None
+    region_dimensions: sky.Quantity = None
+    region_bounds: sky.Quantity = None
     sample_shape: str = "Circle"
-    sample_dimensions: sky.AstropyUnitfulParamter = None
+    sample_dimensions: sky.Quantity = None
     sample_type: str = "Random"
     n_samples: int = 1000
-    dtypes: list = []
+    dtypes: set[str] = None
 
     class Config:
         arbitrary_types_allowed = True
@@ -67,7 +67,7 @@ class CosmapSamplingParameters(BaseModel):
     def validate_region_bounds(cls, v, values):
         if ("region_center" not in values or "region_dimensions" not in values) and v is None:
             raise ValueError("Either region_center and region_dimensions or region_bounds must be specified")
-
+        return v
 class CosmapDatasetParameters(BaseModel):
     """
     Cosmap analyses always involve repeatedly querying some large survey
@@ -75,10 +75,10 @@ class CosmapDatasetParameters(BaseModel):
     heinlein, which is optimized for large survey datasets.
     """
     dataset_name: str
-    dataset_wrapper = "heinlein"
+    dataset_wrapper: str = "heinlein"
 
 class CosmapOutputParameters(BaseModel):
-    base_output_path = Path.cwd()
+    base_output_path: Path = Path.cwd()
     output_paths: Path | dict = None
     output_formats: str | dict = "dataframe"
     write_format: str = "csv"
@@ -93,7 +93,8 @@ class CosmapParameters(BaseModel):
     """
     threads: int = Field(default = 1, ge=1)
     output_parameters: CosmapOutputParameters
-    analysis_parameters: CosmapAnalysisParameters = None
+    analysis_definition: ModuleType = None
+    analysis_parameters: CosmapAnalysisParameters
     sampling_parameters: CosmapSamplingParameters
     dataset_parameters: CosmapDatasetParameters
     class Config:
