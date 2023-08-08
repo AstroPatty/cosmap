@@ -35,16 +35,16 @@ def initialize_plugins(analysis_object, plugins, parameters):
 def initialize_worker_plugins(analysis_object, plugins, parameters):
     for name, plugin_data in plugins.items():
         parameter_values = utils.get_parameters_by_name(parameters, parameter_names=plugin_data.get("needed-parameters", []))
-        plugin_object = getattr(parameters.analysis_parameters.definition_module.plugins, name)(**parameter_values)
+        plugin_object = getattr(parameters.analysis_definition.plugins, name)(**parameter_values)
         analysis_object.client.register_worker_plugin(plugin_object)
 
 def initialize_sampler_plugin(name, plugin_data, parameters):
     parameter_values = utils.get_parameters_by_name(parameters, parameter_names=plugin_data.get("needed-parameters", []))
-    plugin_object = getattr(parameters.analysis_parameters.definition_module.plugins, name)
+    plugin_object = getattr(parameters.analysis_definition.plugins, name)
     return {name: {"plugin": plugin_object, "parameters": parameter_values}}
 
 def initialize_task_generator_plugin(name, plugin_data, parameters):
     parameter_values = utils.get_parameters_by_name(parameters, parameter_names=plugin_data.get("needed-parameters", []))
-    plugin_object = getattr(parameters.analysis_parameters.definition_module.plugins, name)
+    plugin_object = getattr(parameters.analysis_definition.plugins, name)
     return {name: {"plugin": plugin_object, "parameters": parameter_values}}
 

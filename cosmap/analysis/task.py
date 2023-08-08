@@ -10,13 +10,12 @@ from functools import partial
 from cosmap import analysis
 from loguru import logger
 from astropy.coordinates import SkyCoord
-from devtools import debug
 
-def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, needed_dtypes: list, samples: list, chunk_size: int = 10, plugins = {}):
+def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, needed_dtypes: list, samples: list, chunk_size: int = 1000, plugins = {}):
     """
     
 
-    chunk_size breaks up the computation such that results will be written to disk.
+    chunk_size breaks up the computation.
     
     
     """
@@ -29,16 +28,30 @@ def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, 
         plugin_parameters.update(plugin_data["parameters"])
         g = plugin_object(**plugin_parameters)
         for t in g:
-            yield t    
+            yield t
+
+    logger.info("Building task pipeline...")
     pipeline_function = build_pipeline(parameters, dependency_graph)
     n_chunks = math.ceil(len(samples) / chunk_size)
     n_workers = len(client.nthreads())
-    chunks = np.array_split(samples, n_chunks)
+
+    if n_chunks % n_workers != 0:
+        n_chunks += n_workers - (n_chunks % n_workers)
+        chunk_size = math.ceil(len(samples) / n_chunks)
+        logger.info(f"Chunk size would not evenly divide into {n_workers} workers. Adjusting chunk size to {chunk_size}")
+        n_chunks = math.ceil(len(samples) / chunk_size)
+
+
+
+    logger.info(f"Chunking samples with chunksize = {chunk_size}")
+    chunks = np.array_split(samples, n_chunks/ n_workers)
     sample_shape = parameters.sampling_parameters.sample_shape
     sample_dimensions = parameters.sampling_parameters.sample_dimensions
 
     if sample_shape != "Circle":
         raise NotImplementedError("Only circular samples are currently supported")
+
+    logger.info(f"Submitting {n_chunks} chunks to {n_workers} workers")
     for c in chunks:
         splits = np.array_split(c, n_workers)
         f = partial(main_task, dtypes = needed_dtypes, sample_shape = "cone", sample_dimensions = max(sample_dimensions), pipeline_function = pipeline_function)
@@ -76,14 +89,21 @@ def build_pipeline(parameters: BaseModel, dependency_graph):
     )
     return pipeline_function    
 
-def main_task(coordinates, sample_shape, sample_dimensions, dtypes, pipeline_function, *args, **kwargs):
+def main_task(coordinates, sample_shape, sample_dimensions, dtypes, pipeline_function, generate = True, other_args = {}, *args, **kwargs):
     worker = get_worker()
+    my_id = worker.id
+    logger.info(f"Worker {my_id} recieved {len(coordinates)} samples")
+
     dataset = worker.dataset
     sample_generator = dataset.sample_generator(coordinates, dtypes = dtypes, sample_type = sample_shape, sample_dimensions = sample_dimensions)
+    logger.info(f"Worker {my_id} finished bootstrapping this chunk...")
     results = []
-    for region, sample in sample_generator:
+    logger.info(f"Worker {my_id} is now processing samples...")
+    for i, (region, sample) in enumerate(sample_generator):
+        if i and (i%100 == 0):
+            logger.info(f"Worker {my_id} has processed {i} samples from this chunk")
         try:
-            results.append(pipeline_function(data = sample, sample_region = region))
+            results.append(pipeline_function(data = sample, sample_region = region, **other_args))
         except analysis.CosmapBadSampleError:
             logger.warning("Bad sample detected. Skipping...")
             continue

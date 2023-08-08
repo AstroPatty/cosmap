@@ -264,14 +264,14 @@ tqdm = ["tqdm"]
 
 [[package]]
 name = "heinlein"
-version = "0.4.12"
+version = "0.4.13"
 description = "Library for interacting with large astronomical survey datasets"
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "heinlein-0.4.12-py3-none-any.whl", hash = "sha256:67b3fa63456896bee0a3e7ed7dc43cfa6860d243104d3d8f6f4a15ff89e4e0e7"},
-    {file = "heinlein-0.4.12.tar.gz", hash = "sha256:11f445ff0017b985c0fcc7cd0b97558d8c3a272243c992368816e58331395797"},
+    {file = "heinlein-0.4.13-py3-none-any.whl", hash = "sha256:d630ad8c1b47dbb1860c6fa92ae5accf8c6ab71a27a31437de40df510c202bc4"},
+    {file = "heinlein-0.4.13.tar.gz", hash = "sha256:e14f809a58162c27b336300dbadf17eadfbb279303a007a4fdf62ec94fb8b856"},
 ]
 
 [package.dependencies]

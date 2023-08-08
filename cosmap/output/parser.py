@@ -44,9 +44,10 @@ class dataFrameOutputParser(cosmapOutputParser):
         allocates memory in chunks, and only increases the amount of memory when the chunk fills.
         """
         output_format = pd.DataFrame
-        def __init__(self, chunksize = 1000, *args, **kwargs):
+        def __init__(self, chunksize = 5000, *args, **kwargs):
             self.tally = 0
             self.size = 0
+            self.end = 0
             self.chunksize = chunksize
             self.initialized = False
             self.series = {}
@@ -73,7 +74,7 @@ class dataFrameOutputParser(cosmapOutputParser):
             self.tally += 1
 
         def extend(self):
-            self.end += self.chunksize
+            self.size += self.chunksize
             for c in self.series:
                 self.series[c] = np.append(self.series[c], np.empty(self.chunksize, dtype = self.dtypes[c]))
         
@@ -84,7 +85,6 @@ class dataFrameOutputParser(cosmapOutputParser):
             return None     
         def clear(self, *args, **kwargs):
             self.tally = 0
-            self.end = 0
             self.initialized = False
             self.series = {}
             self.columns = set()

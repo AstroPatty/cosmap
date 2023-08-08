@@ -10,7 +10,6 @@ from pydantic import BaseModel
 from cosmap.analysis.setup import handle_setup
 from cosmap.analysis import plugins
 from loguru import logger
-import threading
 class AnalysisException(Exception):
     pass
 
@@ -42,7 +41,7 @@ class CosmapAnalysis:
     def setup(self, *args, **kwargs):
         self.verify_analysis()
         if self.plugins:
-            plugins.verify_plugins(self.plugins, self.parameters.analysis_parameters.definition_module)
+            plugins.verify_plugins(self.plugins, self.parameters.analysis_definition)
             self.plugins = plugins.initialize_plugins(self, self.plugins, self.parameters)
 
         self.dataset_plugin = get_dataset(self.parameters.dataset_parameters)

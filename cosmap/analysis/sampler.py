@@ -69,6 +69,8 @@ class CosmapSampler(ABC):
         try:
             center = self.parameters.region_center
             dims = self.parameters.region_dimensions
+            if dims is None:
+                raise AttributeError
             full_bounds = [center.ra - dims[0]/2, center.dec - dims[1]/2, center.ra + dims[0]/2,  center.dec + dims[1]/2]
         except AttributeError:
             full_bounds = self.parameters.region_bounds
