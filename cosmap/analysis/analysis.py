@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from cosmap.analysis.setup import handle_setup
 from cosmap.analysis import plugins
 from loguru import logger
+
 class AnalysisException(Exception):
     pass
 
@@ -78,7 +79,7 @@ class CosmapAnalysis:
  
 
 
-        self.tasks = task.generate_tasks(self.client, self.parameters, self.main_graph, self.needed_datatypes, samples, plugins=self.plugins)
+        self.tasks = task.get_tasks(self.client, self.parameters, self.main_graph, self.needed_datatypes, samples, plugins=self.plugins)
 
     def verify_analysis(self):
         """

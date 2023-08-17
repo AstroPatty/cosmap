@@ -5,12 +5,19 @@ import numpy as np
 import math
 from types import ModuleType
 import networkx as nx
+
 from cosmap.analysis import utils
+from cosmap.plugins import register
+from cosmap.plugins.base import manager
+
 from functools import partial
 from cosmap import analysis
 from loguru import logger
 from astropy.coordinates import SkyCoord
 
+
+
+@register
 def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, needed_dtypes: list, samples: list, chunk_size: int = 1000, plugins = {}):
     """
     
@@ -19,6 +26,7 @@ def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, 
     
     
     """
+    
     if "task_generator" in plugins:
         if len(plugins["task_generator"]) > 1:
             raise Exception("Found multiple task generator plugins! Only one is allowed.")
@@ -57,6 +65,12 @@ def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, 
         f = partial(main_task, dtypes = needed_dtypes, sample_shape = "cone", sample_dimensions = max(sample_dimensions), pipeline_function = pipeline_function)
         tasks = client.map(f, splits)
         yield tasks
+
+
+def get_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, needed_dtypes: list, samples: list, chunk_size: int = 1000, plugins = {}):
+
+    result = manager.hook.generate_tasks(client = client, parameters = parameters, dependency_graph = dependency_graph, needed_dtypes = needed_dtypes, samples = samples, chunk_size = chunk_size, plugins = plugins)
+    return result
 
 
 def build_pipeline(parameters: BaseModel, dependency_graph):

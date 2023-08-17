@@ -1,9 +1,23 @@
 from cosmap.analysis import utils
+from cosmap.plugins.base import hookspec
+from cosmap.plugins.base import manager
+from pydantic import BaseModel
+import networkx as nx
+
 
 class CosmapPluginError(Exception):
     pass
 
 allowed_types = ["sampler", "task_generator"]
+
+
+@hookspec(firstresult=True)
+def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, needed_dtypes: list, samples: list, chunk_size: int = 1000):
+    """
+    Generates tasks for the scheduler to execute. This function is called by the scheduler.
+    """
+
+
 
 def verify_plugins(plugins, definitions):
     try:
@@ -22,6 +36,8 @@ def verify_plugins(plugins, definitions):
             raise CosmapPluginError(f"Unable to find definition of plugin '{plugin_name}' in plugins.py")
 
 def initialize_plugins(analysis_object, plugins, parameters):
+    manager.register(parameters.analysis_definition.plugins)
+    
     output = {}
     for plugin, plugin_data in plugins.items():
         if (pt := plugin_data["plugin-type"]) == "sampler":
