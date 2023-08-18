@@ -128,7 +128,6 @@ def main_task(
     sample_dimensions,
     dtypes,
     pipeline_function,
-    generate=True,
     other_args={},
     *args,
     **kwargs,

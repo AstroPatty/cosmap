@@ -55,7 +55,6 @@ class dataFrameOutputParser(cosmapOutputParser):
     def __init__(self, chunksize=5000, *args, **kwargs):
         self.tally = 0
         self.size = 0
-        self.end = 0
         self.chunksize = chunksize
         self.initialized = False
         self.series = {}

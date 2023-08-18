@@ -32,7 +32,6 @@ class CosmapAnalysis:
 
     """
 
-    ignore_blocks = ["Setup", "Teardown"]
 
     def __init__(self, analysis_paramters: BaseModel, **kwargs):
         self.parameters = analysis_paramters

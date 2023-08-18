@@ -3,25 +3,6 @@ from typing import TypeVar, List
 from cosmap.config import models
 from cosmap.config.analysis import AnalysisParameters
 
-
-def build_paramter(specification: dict, configuration: dict):
-    """
-    This function a paramter specification and its resultant value
-    into an actual type-checked paramter, using pydantic. There are
-    three cases:
-
-    The paramter is model, in which case it is specified
-    by a dot path.
-
-    The paramter is some other built-in type (float, int)
-    in which case it's just the value.
-
-
-    """
-
-    pass
-
-
 def parse_models(param_specification: dict) -> dict:
     """
     When needed inside a analysis specification file, models are specified

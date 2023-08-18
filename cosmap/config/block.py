@@ -70,7 +70,7 @@ def resolve_references(values, ref_values):
 
 
 def create_parameter_block(
-    name: str, template: BaseModel, values: dict, sub_block=False
+    name: str, template: BaseModel, values: dict
 ):
     block = template(**values, name=name)
     return block
