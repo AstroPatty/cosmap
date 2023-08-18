@@ -7,6 +7,9 @@ from copy import copy
 from devtools import debug
 import typing
 
+class CosmapParameterException(Exception):
+    pass
+
 def create_analysis_block(name, analysis_template, values):
     """
     Create a CosmapParameters object that can be used for a given analysis.
@@ -48,7 +51,7 @@ def resolve_references(values, ref_values):
                 obj = obj[p]
             except KeyError:
                 obj = {}
-                break
+                raise CosmapParameterException(f"Value {ref_key} is referenced in config but is not present!")
 
 
         

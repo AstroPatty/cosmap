@@ -46,11 +46,11 @@ class CosmapAnalysis:
             self.plugins = plugins.initialize_plugins(self, self.plugins, self.parameters)
 
         self.dataset_plugin = get_dataset(self.parameters.dataset_parameters)
-        self.sampler = Sampler(self.parameters.sampling_parameters, self.plugins.get("sampler", {}))
+        self.sampler = Sampler(self.parameters.sampling_parameters, self.parameters.analysis_parameters, self.plugins.get("sampler", {}))
 
 
         self.sampler.initialize_sampler()
-        samples = self.sampler.generate_samples(self.parameters.sampling_parameters.n_samples)
+        samples = self.sampler.generate_samples(n_sample=self.parameters.sampling_parameters.n_samples)
         blocks = []
         if "Setup" in self.parameters.analysis_parameters.transformations:
             new_params = handle_setup(self.parameters, self.parameters.analysis_parameters.transformations)

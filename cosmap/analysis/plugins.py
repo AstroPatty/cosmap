@@ -16,6 +16,7 @@ def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, 
     """
     Generates tasks for the scheduler to execute. This function is called by the scheduler.
     """
+    pass
 
 
 
@@ -36,16 +37,14 @@ def verify_plugins(plugins, definitions):
             raise CosmapPluginError(f"Unable to find definition of plugin '{plugin_name}' in plugins.py")
 
 def initialize_plugins(analysis_object, plugins, parameters):
-    manager.register(parameters.analysis_definition.plugins)
+    if hasattr (parameters.analysis_definition, "plugins"):
+        manager.register(parameters.analysis_definition.plugins)
     
     output = {}
     for plugin, plugin_data in plugins.items():
         if (pt := plugin_data["plugin-type"]) == "sampler":
             _output = initialize_sampler_plugin(plugin, plugin_data, parameters)
-        elif pt == "task_generator":
-            _output = initialize_task_generator_plugin(plugin, plugin_data, parameters)
-
-        output.update({plugin_data["plugin-type"]: _output})
+            output.update({plugin_data["plugin-type"]: _output})
     return output
 
 def initialize_worker_plugins(analysis_object, plugins, parameters):
