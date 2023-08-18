@@ -1,7 +1,10 @@
 from __future__ import annotations
-from pydantic import BaseModel, Field, validator
+
 from pathlib import Path
 from types import ModuleType
+
+from pydantic import BaseModel, Field, validator
+
 from cosmap.config.models import sky
 
 """
@@ -76,8 +79,8 @@ class CosmapSamplingParameters(BaseModel):
             "region_center" not in values or "region_dimensions" not in values
         ) and v is None:
             raise ValueError(
-                "Either region_center and region_dimensions or region_bounds"\
-                      "must be specified"
+                "Either region_center and region_dimensions or region_bounds"
+                "must be specified"
             )
         return v
 

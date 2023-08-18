@@ -1,5 +1,6 @@
+from typing import Protocol, Type, TypeVar, runtime_checkable
+
 from . import sky
-from typing import Protocol, Type, runtime_checkable, TypeVar
 
 __all__ = ["sky", "SingleValueModel"]
 

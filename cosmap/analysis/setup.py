@@ -1,8 +1,8 @@
-from pydantic import BaseModel
-from cosmap.analysis import dependencies
-from cosmap.analysis import utils
 import networkx as nx
 from loguru import logger
+from pydantic import BaseModel
+
+from cosmap.analysis import dependencies, utils
 
 
 class CosmapAnalysisExcept(Exception):
@@ -11,8 +11,8 @@ class CosmapAnalysisExcept(Exception):
 
 def handle_setup(parameters: BaseModel, transformations: dict):
     """
-    This function is responsible for running the setup blocks. It will run the setup 
-    blocks in the order specified in the analysis parameters. It will also check to 
+    This function is responsible for running the setup blocks. It will run the setup
+    blocks in the order specified in the analysis parameters. It will also check to
     make sure that all of the required parameters are present.
     """
     dependency_graph = dependencies.build_dependency_graph(transformations["Setup"])
@@ -57,9 +57,9 @@ def run_setup(parameters, dependency_graph, transformation_objects, task_order):
 
 def get_task_parameters(parameters: BaseModel, task: str, previous_results={}):
     """
-    This method should return a dictionary of parameters that are needed to run the 
+    This method should return a dictionary of parameters that are needed to run the
     task. It will also search through previous results to see if any of them are
-    required for the task. If so, it will add them to the dictionary of parameters. 
+    required for the task. If so, it will add them to the dictionary of parameters.
     This method should be called by the subclass.
     """
     block = "Setup"
@@ -100,7 +100,7 @@ def get_task_parameters(parameters: BaseModel, task: str, previous_results={}):
             except AttributeError:
                 if param in needed_parameters:
                     raise CosmapAnalysisExcept(f"Missing parameter {param}!")
-                else:  # this is an optional parameter. I know that the "else" is not 
+                else:  # this is an optional parameter. I know that the "else" is not
                     # necessary but this is more readable, sue me
                     logger.info(
                         f"No value found for optional parameter {param_path[-1]}..."

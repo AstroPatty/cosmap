@@ -1,8 +1,9 @@
-from cosmap.config.block import create_analysis_block
-from cosmap.analysis.analysis import CosmapAnalysis
-from pydantic.utils import deep_update
-from pydantic import BaseModel
 from loguru import logger
+from pydantic import BaseModel
+from pydantic.utils import deep_update
+
+from cosmap.analysis.analysis import CosmapAnalysis
+from cosmap.config.block import create_analysis_block
 
 
 class CosmapConfigException(Exception):
@@ -37,8 +38,8 @@ def build_analysis_object(analysis_data, run_configuration, **kwargs):
         main_config_definition = getattr(config_definition, "Main")
     except AttributeError:
         raise CosmapConfigException(
-            f"The analysis config for '{module.__name__}'"\
-                  "does not have a 'Main' config block"
+            f"The analysis config for '{module.__name__}'"
+            "does not have a 'Main' config block"
         )
     run_configuration = deep_update(run_configuration, additional_parameters)
     block = create_analysis_block("Main", main_config_definition, run_configuration)
@@ -88,8 +89,8 @@ def get_parameters_by_name(parameters: BaseModel, parameter_names: list):
                 print(p)
                 if param in parameter_names:
                     raise CosmapConfigException(f"Missing parameter {param}!")
-                else:  # this is an optional parameter. I know that the "else" is not 
-                       # necessary but this is more readable, sue me
+                else:  # this is an optional parameter. I know that the "else" is not
+                    # necessary but this is more readable, sue me
                     logger.info(
                         f"No value found for optional parameter {param_path[-1]}..."
                     )
@@ -105,9 +106,9 @@ def get_task_parameters(
     parameters: BaseModel, block: str, task: str, previous_results={}
 ):
     """
-    This method should return a dictionary of parameters that are needed to run the 
-    task. It will also search through previous results to see if any of them are 
-    required for the task. If so, it will add them to the dictionary of parameters. 
+    This method should return a dictionary of parameters that are needed to run the
+    task. It will also search through previous results to see if any of them are
+    required for the task. If so, it will add them to the dictionary of parameters.
     This method should be called by the subclass.
     """
     analysis_parameters = parameters.analysis_parameters
@@ -143,7 +144,7 @@ def get_task_parameters(
             except AttributeError:
                 if param in needed_parameters:
                     raise CosmapConfigException(f"Missing parameter {param}!")
-                else: 
+                else:
                     logger.info(
                         f"No value found for optional parameter {param_path[-1]}..."
                     )
@@ -159,9 +160,9 @@ def get_task_parameters_from_dictionary(
     parameters: BaseModel, block: str, task: str, previous_results={}
 ):
     """
-    This method should return a dictionary of parameters that are needed to run the 
-    task. It will also search through previous results to see if any of them are 
-    required for the task. If so, it will add them to the dictionary of parameters. 
+    This method should return a dictionary of parameters that are needed to run the
+    task. It will also search through previous results to see if any of them are
+    required for the task. If so, it will add them to the dictionary of parameters.
     This method should be called by the subclass.
     """
     analysis_parameters = parameters["analysis_parameters"]
@@ -201,7 +202,7 @@ def get_task_parameters_from_dictionary(
             except KeyError:
                 if param in needed_parameters:
                     raise CosmapConfigException(f"Missing parameter {param}!")
-                else: 
+                else:
                     logger.info(
                         f"No value found for optional parameter {param_path[-1]}..."
                     )

@@ -1,5 +1,6 @@
-from cosmap.config.analysis import CosmapParameters
 from pydantic import BaseModel
+
+from cosmap.config.analysis import CosmapParameters
 
 
 class CosmapParameterException(Exception):
@@ -69,8 +70,6 @@ def resolve_references(values, ref_values):
     return values
 
 
-def create_parameter_block(
-    name: str, template: BaseModel, values: dict
-):
+def create_parameter_block(name: str, template: BaseModel, values: dict):
     block = template(**values, name=name)
     return block

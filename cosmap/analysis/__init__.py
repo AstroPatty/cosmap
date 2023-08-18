@@ -1,8 +1,7 @@
-from .errors import CosmapBadSampleError
-from . import plugins, task
-
 from cosmap.plugins import manager
 
+from . import plugins, task
+from .errors import CosmapBadSampleError
 
 __all__ = ["CosmapBadSampleError"]
 

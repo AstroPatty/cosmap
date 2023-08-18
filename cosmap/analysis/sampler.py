@@ -1,10 +1,12 @@
-from pydantic import BaseModel
-import astropy.units as u
 import builtins
+from typing import final
+
+import astropy.units as u
 import numpy as np
 from astropy.coordinates import SkyCoord
-from cosmap.plugins import request, register, manager
-from typing import final
+from pydantic import BaseModel
+
+from cosmap.plugins import manager, register, request
 
 
 class CosmapSamplerException(Exception):

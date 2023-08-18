@@ -1,10 +1,10 @@
-from astropy.coordinates import SkyCoord as SkC
+from typing import Annotated, Any, Callable
+
 import astropy.units as u
-from typing import Annotated
+from astropy.coordinates import SkyCoord as SkC
 from pydantic import BaseModel, GetJsonSchemaHandler
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
-from typing import Any, Callable
 
 
 def quantity_validator(v: dict, *args, **kwargs) -> u.Quantity:

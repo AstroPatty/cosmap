@@ -1,5 +1,6 @@
+from pluggy import HookspecMarker, PluginManager
+
 from .register import register
-from pluggy import PluginManager, HookspecMarker
 
 manager = PluginManager("cosmap")
 pluginspsec = HookspecMarker("cosmap")

@@ -1,15 +1,15 @@
 from __future__ import annotations
-from cosmap.analysis.sampler import Sampler
-from cosmap.dataset import get_dataset
-from cosmap.analysis import task
-from cosmap.output import get_output_handler
-from cosmap.analysis import dependencies
-from cosmap.plugins import manager
 
 from dask.distributed import Client
-from pydantic import BaseModel
-from cosmap.analysis.setup import handle_setup
 from loguru import logger
+from pydantic import BaseModel
+
+from cosmap.analysis import dependencies, task
+from cosmap.analysis.sampler import Sampler
+from cosmap.analysis.setup import handle_setup
+from cosmap.dataset import get_dataset
+from cosmap.output import get_output_handler
+from cosmap.plugins import manager
 
 
 class CosmapAnalysisException(Exception):
@@ -31,7 +31,6 @@ class CosmapAnalysis:
 
 
     """
-
 
     def __init__(self, analysis_paramters: BaseModel, **kwargs):
         self.parameters = analysis_paramters
@@ -94,11 +93,11 @@ class CosmapAnalysis:
 
     def verify_analysis(self):
         """
-        Verify that the analysis is valid. By the time we get here, we already know 
-        that all of the configuraiton is valid, since it had to be parsed by Pydantic. 
-        This function checks that the analysis itself is valid, meaning that it has a 
-        valid DAG structure, all transformations defined in the config are in the 
-        implementation file, and that all transformations take parameters that actually 
+        Verify that the analysis is valid. By the time we get here, we already know
+        that all of the configuraiton is valid, since it had to be parsed by Pydantic.
+        This function checks that the analysis itself is valid, meaning that it has a
+        valid DAG structure, all transformations defined in the config are in the
+        implementation file, and that all transformations take parameters that actually
         exist (or, will be created by a previous transformation)
         """
         transformations = self.parameters.analysis_parameters.transformations.get(
@@ -111,7 +110,7 @@ class CosmapAnalysis:
         self.main_graph = dependencies.build_dependency_graphs(
             self.parameters.analysis_parameters.transformations, block_="Main"
         )["Main"]
-        # Note, the build_dependency_graphs function will raise an exception if the 
+        # Note, the build_dependency_graphs function will raise an exception if the
         # graph is not a DAG. So we don't need to check that here
         definitions = self.parameters.analysis_definition.transformations
         try:
@@ -123,8 +122,8 @@ class CosmapAnalysis:
                 getattr(main_definitions, name)
             except AttributeError:
                 raise CosmapAnalysisException(
-                    f"Could not find the definition for transformation {name} in the"\
-                         " 'Main' block of transformations.py!"
+                    f"Could not find the definition for transformation {name} in the"
+                    " 'Main' block of transformations.py!"
                 )
 
     @staticmethod
@@ -158,7 +157,7 @@ class CosmapAnalysis:
             n_completed += len(results)
             self.output_handler.take_outputs(results)
             logger.info(
-                f"Completed {n_completed} of "\
-                    f"{self.parameters.sampling_parameters.n_samples} samples"
+                f"Completed {n_completed} of "
+                f"{self.parameters.sampling_parameters.n_samples} samples"
             )
             self.output_handler.write_output()

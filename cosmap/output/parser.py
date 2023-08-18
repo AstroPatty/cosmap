@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+
 import numpy as np
 import pandas as pd
 
@@ -45,8 +46,8 @@ class cosmapOutputParser(ABC):
 class dataFrameOutputParser(cosmapOutputParser):
     """
     This parser takes a dictionary of key-value pairs that correspond to a single row in
-    a DataFrame, and appends it to a DataFrame. In general, appending is a very 
-    expensive operation, so this parser allocates memory in chunks, and only increases 
+    a DataFrame, and appends it to a DataFrame. In general, appending is a very
+    expensive operation, so this parser allocates memory in chunks, and only increases
     the amount of memory when the chunk fills.
     """
 
@@ -79,8 +80,8 @@ class dataFrameOutputParser(cosmapOutputParser):
         for column, value in data.items():
             if column not in self.columns:
                 raise cosmapParserException(
-                    f"Parsed data contains column {column}, which is not in the list"\
-                          "of columns!"
+                    f"Parsed data contains column {column}, which is not in the list"
+                    "of columns!"
                 )
             self.series[column][self.tally] = value
         self.tally += 1

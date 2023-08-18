@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List
+
 from pydantic import BaseModel
+
 from . import parser, writer
 
 

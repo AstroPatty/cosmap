@@ -1,11 +1,13 @@
-from pathlib import Path
+import json
 import sys
 from importlib import import_module
+from pathlib import Path
+
+import toml
+from pydantic import BaseModel
+
 from cosmap import locations
 from cosmap.analysis.dependencies import build_dependency_graph
-from pydantic import BaseModel
-import json
-import toml
 
 
 class CosmapParameterModel(BaseModel):
@@ -35,14 +37,14 @@ def verify_model(folder_path, module, model):
             block = getattr(module, tblock)
         except AttributeError:
             raise CosmapModelException(
-                f"Could not find the implementation of block {tblock} in"\
-                     f" the analysis {model.__name__}"
+                f"Could not find the implementation of block {tblock} in"
+                f" the analysis {model.__name__}"
             )
         for name, transformation in transformations_.items():
             if not hasattr(block, name):
                 raise CosmapModelException(
-                    f"Could not find the transformation {name}"\
-                         f" in the model {model.__name__}"
+                    f"Could not find the transformation {name}"
+                    f" in the model {model.__name__}"
                 )
 
         verify_transformation_block(transformations_)

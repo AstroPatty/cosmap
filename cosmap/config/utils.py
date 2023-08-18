@@ -1,7 +1,10 @@
+from typing import List, TypeVar
+
 from pydantic import BaseModel
-from typing import TypeVar, List
+
 from cosmap.config import models
 from cosmap.config.analysis import AnalysisParameters
+
 
 def parse_models(param_specification: dict) -> dict:
     """
@@ -65,7 +68,7 @@ def find_common_params(base: TypeVar, model_to_check: BaseModel, skip=[]):
     Finds any parameters in base (by name) that are also in model_to_check and
     returns them as key-value pairs. This is most often used when you have an
     analysis that creates other analyses, and some of the parameters for the
-    sub-analyses are included in the parameters of the super-analysis. This 
+    sub-analyses are included in the parameters of the super-analysis. This
     automatically excludes any fields that are found in the base paramter specification.
 
     """

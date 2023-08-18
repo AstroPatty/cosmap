@@ -2,7 +2,6 @@ from dask.distributed.diagnostics.plugin import WorkerPlugin
 from heinlein import load_dataset
 from pydantic import BaseModel
 
-
 """
 At present, datasets are attached to Dask workers as plugins. Ideally, a dataset
 would operate a server process that would be queried by the workers. In practice though,

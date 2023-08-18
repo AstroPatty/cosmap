@@ -1,5 +1,7 @@
-import click
 from pathlib import Path
+
+import click
+
 from cosmap.api import cmds
 
 

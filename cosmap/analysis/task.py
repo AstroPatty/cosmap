@@ -1,18 +1,17 @@
-from pydantic import BaseModel
-from dask.distributed import get_worker
-import numpy as np
 import math
-from types import ModuleType
-import networkx as nx
-
-from cosmap.analysis import utils
-
-from cosmap.plugins import register, request
-
 from functools import partial
-from cosmap import analysis
-from loguru import logger
+from types import ModuleType
+
+import networkx as nx
+import numpy as np
 from astropy.coordinates import SkyCoord
+from dask.distributed import get_worker
+from loguru import logger
+from pydantic import BaseModel
+
+from cosmap import analysis
+from cosmap.analysis import utils
+from cosmap.plugins import register, request
 
 
 def get_tasks(
@@ -50,7 +49,7 @@ def generate_tasks(
     chunk_size: int = 1000,
 ):
     """
-    This is a default task generator. It will generate tasks for the scheduler to 
+    This is a default task generator. It will generate tasks for the scheduler to
     execute. It is possible to overwrite this, so it is defined as a plugin.
     """
 
@@ -63,7 +62,7 @@ def generate_tasks(
         n_chunks += n_workers - (n_chunks % n_workers)
         chunk_size = math.ceil(len(samples) / n_chunks)
         logger.info(
-            f"Chunk size would not evenly divide into {n_workers} workers."\
+            f"Chunk size would not evenly divide into {n_workers} workers."
             f" Adjusting chunk size to {chunk_size}"
         )
         n_chunks = math.ceil(len(samples) / chunk_size)

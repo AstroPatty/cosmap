@@ -1,7 +1,8 @@
-from pydantic import BaseModel, validator
+from typing import List
+
 import astropy.units as u
 from astropy.coordinates import SkyCoord
-from typing import List
+from pydantic import BaseModel, validator
 
 
 class Circle(BaseModel):

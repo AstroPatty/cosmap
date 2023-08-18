@@ -1,8 +1,8 @@
-from pathlib import Path
-import json
-from cosmap import locations
 import importlib
+import json
+from pathlib import Path
 
+from cosmap import locations
 
 """
 This file contains functions for managing analyses. This includes installing, 
@@ -17,12 +17,12 @@ with open(expected_file_path, "r") as f:
 
 def install_analysis(analysis_path: Path, name=None):
     """
-    Install an analysis at the given path, given a particuar name. If the name is not 
+    Install an analysis at the given path, given a particuar name. If the name is not
     specified, it will use the name of the folder the analysis is in.
 
-    Installation does a very basic check that the structure of the analysis folder 
-    matches what is expected. It does NOT check that an analysis can actually run. 
-    All that is being done during the actual "installation" is the path to the anlysis 
+    Installation does a very basic check that the structure of the analysis folder
+    matches what is expected. It does NOT check that an analysis can actually run.
+    All that is being done during the actual "installation" is the path to the anlysis
     is being saved.
 
     """
@@ -41,7 +41,7 @@ def install_analysis(analysis_path: Path, name=None):
 
 def uninstall_analysis(name: str):
     """
-    Remove an analysis from the list of know analyses. Just removes the analysis from 
+    Remove an analysis from the list of know analyses. Just removes the analysis from
     the list of know analyses, assuming it exists.
     """
     if name not in (a := get_known_analyses()):
@@ -125,7 +125,7 @@ def load_analysis_files(analysis_name):
     This is a fun one. This function takes the name of an analysis, and returns
     a dictionary of:
         - sub-dictionaries for each json file, with the name being the name of the file
-        - a dynamically-created module object, with sub-modules for each python file, 
+        - a dynamically-created module object, with sub-modules for each python file,
           key name "module"
     """
     if analysis_name not in (a := get_known_analyses()):
