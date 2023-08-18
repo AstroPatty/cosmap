@@ -5,10 +5,11 @@ from cosmap.analysis import task
 from cosmap.locations import ROOT
 from cosmap.output import get_output_handler
 from cosmap.analysis import dependencies
+from cosmap.plugins.manager import manager
+
 from dask.distributed import Client
 from pydantic import BaseModel
 from cosmap.analysis.setup import handle_setup
-from cosmap.analysis import plugins
 from loguru import logger
 
 class AnalysisException(Exception):
@@ -32,25 +33,26 @@ class CosmapAnalysis:
 
     """
     ignore_blocks = ["Setup", "Teardown"]
-    def __init__(self, analysis_paramters: BaseModel, plugins = {}, **kwargs):
+    def __init__(self, analysis_paramters: BaseModel, **kwargs):
         self.parameters = analysis_paramters
-        self.plugins = plugins
 
         self.setup()
  
 
     def setup(self, *args, **kwargs):
         self.verify_analysis()
-        if self.plugins:
-            plugins.verify_plugins(self.plugins, self.parameters.analysis_definition)
-            self.plugins = plugins.initialize_plugins(self, self.plugins, self.parameters)
-
+        manager.register(self.parameters.analysis_definition.plugins)
+    
+    
+        self.sampler = Sampler(self.parameters.sampling_parameters, self.parameters.analysis_parameters)
         self.dataset_plugin = get_dataset(self.parameters.dataset_parameters)
-        self.sampler = Sampler(self.parameters.sampling_parameters, self.parameters.analysis_parameters, self.plugins.get("sampler", {}))
-
-
         self.sampler.initialize_sampler()
-        samples = self.sampler.generate_samples(n_sample=self.parameters.sampling_parameters.n_samples)
+
+
+
+
+
+        samples = self.sampler.generate_samples(n_samples=self.parameters.sampling_parameters.n_samples)
         blocks = []
         if "Setup" in self.parameters.analysis_parameters.transformations:
             new_params = handle_setup(self.parameters, self.parameters.analysis_parameters.transformations)
@@ -76,10 +78,10 @@ class CosmapAnalysis:
         self.output_handler = get_output_handler(self.parameters.output_parameters)
         self.client = Client(n_workers = self.parameters.threads - 1, threads_per_worker = 1)
         self.client.register_worker_plugin(self.dataset_plugin)
- 
 
 
-        self.tasks = task.get_tasks(self.client, self.parameters, self.main_graph, self.needed_datatypes, samples, plugins=self.plugins)
+
+        self.tasks = task.get_tasks(self.client, self.parameters, self.main_graph, self.needed_datatypes, samples)
 
     def verify_analysis(self):
         """

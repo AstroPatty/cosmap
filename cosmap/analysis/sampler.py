@@ -4,29 +4,15 @@ import astropy.units as u
 import builtins
 import numpy as np
 from astropy.coordinates import SkyCoord
-from cosmap.plugins.base import manager, hookspec
-from cosmap.plugins import register
+from cosmap.plugins import request, register
 from typing import final
 from functools import partial
 
 class CosmapSamplerException(Exception):
     pass
 
-def Sampler(sampler_parameters: BaseModel, analysis_parameters: BaseModel, plugin = {}):
-    if plugin:
-        if len(plugin) > 1:
-            raise CosmapSamplerException("Found multiple sampler plugins! Only one is allowed.")
-        plugin_name, plugin_data = list(plugin.items())[0]
-        plugin_object = plugin_data["plugin"]
-        manager.register(plugin_object)
-    else:
-        sampler_type = sampler_parameters.sample_type
-        match sampler_type:
-            case "Random":
-                manager.register(RandomSampler)
-            case _:
-                raise CosmapSamplerException(f"Could not find sampler type {sampler_type}")
-    
+def Sampler(sampler_parameters: BaseModel, analysis_parameters: BaseModel):
+    print(sampler_parameters)
     return CosmapSampler(sampler_parameters, analysis_parameters)
 
 def get_frame_width(sample_shape: str, sample_dimensions):
@@ -40,19 +26,6 @@ def get_frame_width(sample_shape: str, sample_dimensions):
             raise CosmapSamplerException(f"Could not find sample shape {sample_shape}")
 
 
-
-class CosmapSamplerPlugins:
-
-    @hookspec
-    def initialize_sampler(sampler):
-        pass
-
-    @hookspec(firstresult=True)
-    def generate_samples(sampler, n_samples):
-        pass
-
-
-
 @final
 class CosmapSampler:
     """
@@ -64,26 +37,7 @@ class CosmapSampler:
     def __init__(self, sampler_parameters, analysis_parameters):
         self.sampler_parameters = sampler_parameters
         self.analysis_parameters = analysis_parameters
-        self.manager = manager
-        self.verify_plugins()
         self.build_frame()
-
-    def verify_plugins(self):
-        plugin_class = CosmapSamplerPlugins
-        self.expected_impls = [k for k in dir(plugin_class) if not k.startswith("__")]
-        missing = [c for c in self.expected_impls if not getattr(self.manager.hook, c).get_hookimpls()]
-        if missing:
-            raise CosmapSamplerException(f"Missing plugin implementations for {missing}")
-
-    def __getattr__(self, name):
-        """
-        Automatically call the associated plugin IF it exists
-        """
-
-        if name in self.expected_impls:
-            f = getattr(self.manager.hook, name)
-            return partial(f, sampler=self)
-        raise AttributeError(f"CosmapSampler object has no attribute \'{name}\'")
 
     def build_frame(self):
         """
@@ -144,6 +98,17 @@ class CosmapSampler:
         decs = (90 - np.degrees(np.arccos(thetas)))*u.degree
         return np.array([ras, decs])
     
+    def initialize_sampler(self):
+        """
+        Initialize the sampler. This is where we can do things like
+        initialize a random number generator.
+        """
+        func = request("initialize_sampler")
+        return func(sampler=self)
+
+    def generate_samples(self, n_samples: int):
+        func = request("generate_samples")
+        return func(sampler=self, n_samples=n_samples)    
 
 
 

@@ -7,8 +7,9 @@ from types import ModuleType
 import networkx as nx
 
 from cosmap.analysis import utils
-from cosmap.plugins import register
-from cosmap.plugins.base import manager
+
+from cosmap.plugins import register, request
+from cosmap.plugins.manager import manager
 
 from functools import partial
 from cosmap import analysis
@@ -52,6 +53,8 @@ def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, 
 
 
     logger.info(f"Chunking samples with chunksize = {chunk_size}")
+     
+
     chunks = np.array_split(samples, n_chunks/ n_workers)
     sample_shape = parameters.sampling_parameters.sample_shape
     sample_dimensions = parameters.sampling_parameters.sample_dimensions
@@ -68,8 +71,8 @@ def generate_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, 
 
 
 def get_tasks(client, parameters: BaseModel, dependency_graph: nx.DiGraph, needed_dtypes: list, samples: list, chunk_size: int = 1000, plugins = {}):
-
-    result = manager.hook.generate_tasks(client = client, parameters = parameters, dependency_graph = dependency_graph, needed_dtypes = needed_dtypes, samples = samples, chunk_size = chunk_size, plugins = plugins)
+    task_generator = request("generate_tasks")
+    result = task_generator(client = client, parameters = parameters, dependency_graph = dependency_graph, needed_dtypes = needed_dtypes, samples = samples, chunk_size = chunk_size)
     return result
 
 
