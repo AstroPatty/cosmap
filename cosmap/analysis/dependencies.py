@@ -38,7 +38,7 @@ def build_dependency_graph(transformation_block: dict, block=None) -> networkx.D
     for transformation, tparams in transformation_block.items():
         dependencies = tparams.get("dependencies", None)
         if dependencies is not None:
-            if isinstance(dependencies, dict):
+            if not isinstance(dependencies, dict):
                 raise CosmapAnalysisException(
                     "Dependencies should be passed as a dictionary, "
                     "where the key is the name of the dependency "
@@ -48,9 +48,9 @@ def build_dependency_graph(transformation_block: dict, block=None) -> networkx.D
                 )
             if not all([dep in transformation_block.keys() for dep in dependencies]):
                 raise CosmapAnalysisException(
-                    "Unknown dependencies found! If this transformation needs a "\
-                    "parameter, you should put the parameter name in the "\
-                    "needed-parameters block of the dependency's configuration."
+                    "Unknown dependencies found! If this transformation needs a "
+                    "parameter, you should put the parameter name in the needed-parameters "
+                    "block of the dependency's configuration."
                 )
 
             for dep in dependencies:
