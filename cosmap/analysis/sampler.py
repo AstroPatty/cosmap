@@ -12,7 +12,6 @@ class CosmapSamplerException(Exception):
     pass
 
 def Sampler(sampler_parameters: BaseModel, analysis_parameters: BaseModel):
-    print(sampler_parameters)
     return CosmapSampler(sampler_parameters, analysis_parameters)
 
 def get_frame_width(sample_shape: str, sample_dimensions):
@@ -104,7 +103,7 @@ class CosmapSampler:
         initialize a random number generator.
         """
         func = request("initialize_sampler")
-        return func(sampler=self)
+        return func(sampler=self, sampling_parameters=self.sampler_parameters, analysis_parameters=self.analysis_parameters)
 
     def generate_samples(self, n_samples: int):
         func = request("generate_samples")
