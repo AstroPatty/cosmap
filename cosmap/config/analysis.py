@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field, validator
 from pathlib import Path
 from types import ModuleType
 from cosmap.config.models import sky
+
 """
 The parameter block is a top-level model that manages configuration
 for a project, or some piece of the project. The parameter block
@@ -32,17 +33,22 @@ should be a sky coordinate, use::
 
 """
 
+
 class CosmapAnalysisParameters(BaseModel):
     """
     Defines the parameters that will be used by the specific analysis.
     The definition_module and definition_path will be automatically filled in.
-    This class should not be instatiated directly. Instead, use the 
+    This class should not be instatiated directly. Instead, use the
     create_analysis_block function in cosmap.config.block.
     """
+
     transformations: dict = {}
+
     class Config:
         arbitrary_types_allowed = True
         extra = "allow"
+
+
 class CosmapSamplingParameters(BaseModel):
     """
     Cosmap analyses always involve repeating the same process on several
@@ -50,6 +56,7 @@ class CosmapSamplingParameters(BaseModel):
     that are used to define the samples, and the greater region they are drawn from.
     The individual sampler will be responsible for actually evaluating the inputs here.
     """
+
     region_shape: str = "Rectangle"
     region_center: sky.SkyCoord = None
     region_dimensions: sky.Quantity = None
@@ -65,38 +72,50 @@ class CosmapSamplingParameters(BaseModel):
 
     @validator("region_bounds")
     def validate_region_bounds(cls, v, values):
-        if ("region_center" not in values or "region_dimensions" not in values) and v is None:
-            raise ValueError("Either region_center and region_dimensions or region_bounds must be specified")
+        if (
+            "region_center" not in values or "region_dimensions" not in values
+        ) and v is None:
+            raise ValueError(
+                "Either region_center and region_dimensions or region_bounds"\
+                      "must be specified"
+            )
         return v
+
+
 class CosmapDatasetParameters(BaseModel):
     """
     Cosmap analyses always involve repeatedly querying some large survey
     dataset. This block contains that information. The default wrapper is
     heinlein, which is optimized for large survey datasets.
     """
+
     dataset_name: str
     dataset_wrapper: str = "heinlein"
+
 
 class CosmapOutputParameters(BaseModel):
     base_output_path: Path = Path.cwd()
     output_paths: Path | dict = None
     output_formats: str | dict = "dataframe"
     write_format: str = "csv"
+
+
 class CosmapParameters(BaseModel):
     """
     The CosmapParameters is the top-level parameter block
     that is used throughout the analysis. It contains
-    a few parameters that are defined at a top-level (such as 
+    a few parameters that are defined at a top-level (such as
     the number of cores to use), but more importantly contains
     sub-blocks, which are used by various parts of the analysis.
     process.
     """
-    threads: int = Field(default = 1, ge=1)
+
+    threads: int = Field(default=1, ge=1)
     output_parameters: CosmapOutputParameters
     analysis_definition: ModuleType = None
     analysis_parameters: CosmapAnalysisParameters
     sampling_parameters: CosmapSamplingParameters
     dataset_parameters: CosmapDatasetParameters
+
     class Config:
         arbitrary_types_allowed = True
-

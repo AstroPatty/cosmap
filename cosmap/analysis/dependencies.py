@@ -1,9 +1,11 @@
 import networkx
 
+
 class CosmapAnalysisException(Exception):
     pass
 
-def build_dependency_graphs(transformation_blocks: dict, block_ = None) -> dict:
+
+def build_dependency_graphs(transformation_blocks: dict, block_=None) -> dict:
     graphs = {}
     for name, block in transformation_blocks.items():
         if block_ is not None and name != block_:
@@ -13,16 +15,17 @@ def build_dependency_graphs(transformation_blocks: dict, block_ = None) -> dict:
             graphs.update({name: dependency_graph})
     return graphs
 
-def build_dependency_graph(transformation_block: dict, block = None) -> networkx.DiGraph:
+
+def build_dependency_graph(transformation_block: dict, block=None) -> networkx.DiGraph:
     """
     Once an analysis has been defined, we have to check its validity.
     Obvious failrue cases include if two transformations depend on the output
     of each other. Or if there is a loop (i.e. three transformations which
-    depend on eachother). To check this, we consruct a directed graph of 
+    depend on eachother). To check this, we consruct a directed graph of
     transformation dependencies and check for cycles. Checking for cycles
     also ensures that a graph has at least one transformation with no dependencies,
     which is required.
-    
+
     For each transformation, there should be an associated entry in the parameters
     dictionary which specifies dependencies. A transformation without this entry
     will be assumed to have no dependencies. This method will also halt if it finds
@@ -35,23 +38,27 @@ def build_dependency_graph(transformation_block: dict, block = None) -> networkx
     for transformation, tparams in transformation_block.items():
         dependencies = tparams.get("dependencies", None)
         if dependencies is not None:
-            if type(dependencies) != dict:
-                raise CosmapAnalysisException("Dependencies should be passed as a dictionary, " \
-                                        "where the key is the name of the dependency " \
-                                        "transformation and the value is the name the argument " \
-                                        "with its output will be assigned when passed to this "\
-                                        "transformation.")
+            if isinstance(dependencies, dict):
+                raise CosmapAnalysisException(
+                    "Dependencies should be passed as a dictionary, "
+                    "where the key is the name of the dependency "
+                    "transformation and the value is the name the argument "
+                    "with its output will be assigned when passed to this "
+                    "transformation."
+                )
             if not all([dep in transformation_block.keys() for dep in dependencies]):
-                raise CosmapAnalysisException("Unknown dependencies found! If this transformation needs a "\
-                                            "parameter, you should put the parameter name in the needed-parameters "\
-                                            "block of the dependency's configuration.")
+                raise CosmapAnalysisException(
+                    "Unknown dependencies found! If this transformation needs a "\
+                    "parameter, you should put the parameter name in the "\
+                    "needed-parameters block of the dependency's configuration."
+                )
 
             for dep in dependencies:
                 dependency_graph.add_edge(dep, transformation)
 
-    starts = [node for node in dependency_graph.nodes() if dependency_graph.in_degree(node) == 0]
+    [node for node in dependency_graph.nodes() if dependency_graph.in_degree(node) == 0]
     cycles = list(networkx.simple_cycles(dependency_graph))
     if cycles:
-        raise CosmapAnalysisException(f"Analysis contains a dependency cycle!")
-    
+        raise CosmapAnalysisException("Analysis contains a dependency cycle!")
+
     return dependency_graph

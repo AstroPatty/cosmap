@@ -1,5 +1,4 @@
 from pathlib import Path
-from cosmap.config.block import create_parameter_block, create_analysis_block
 from cosmap.analysis import manage
 from cosmap.analysis.utils import build_analysis_object
 import toml
@@ -20,11 +19,13 @@ def run_analysis(analysis_path: Path):
     elif analysis_path.suffix == ".toml":
         config = toml.load(analysis_path)
     else:
-        raise ValueError(f"Could not parse the analysis config {analysis_path}: expect a toml or json file")
+        raise ValueError(f"Could not parse the analysis config {analysis_path}: expect"\
+                          "a toml or json file")
     try:
         base_analysis = config["base-analysis"]
     except KeyError:
-        raise KeyError(f"Could not find a base analysis in the config file {analysis_path}")
+        raise KeyError(f"Could not find a base analysis in the config "\
+                       f"file {analysis_path}")
     
     logger.info(f"Running analysis {base_analysis}")
     logger.info(f"Loading analysis files for {base_analysis}")
