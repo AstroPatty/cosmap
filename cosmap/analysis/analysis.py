@@ -9,7 +9,7 @@ from cosmap.analysis.sampler import Sampler
 from cosmap.analysis.setup import handle_setup
 from cosmap.dataset import get_dataset
 from cosmap.output import get_output_handler
-from cosmap.plugins import manager
+from cosmap.plugins import register_plugins
 
 
 class CosmapAnalysisException(Exception):
@@ -34,13 +34,12 @@ class CosmapAnalysis:
 
     def __init__(self, analysis_paramters: BaseModel, **kwargs):
         self.parameters = analysis_paramters
-
         self.setup()
 
     def setup(self, *args, **kwargs):
         self.verify_analysis()
         if hasattr(self.parameters.analysis_parameters, "plugins"):
-            manager.register(self.parameters.analysis_definition.plugins)
+            register_plugins(self.parameters.analysis_definition.plugins)
 
         self.sampler = Sampler(
             self.parameters.sampling_parameters, self.parameters.analysis_parameters

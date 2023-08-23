@@ -2,10 +2,10 @@ import networkx as nx
 from pydantic import BaseModel
 
 from cosmap.analysis.sampler import CosmapSampler
-from cosmap.plugins import pluginspsec
+from cosmap.plugins import pluginspec
 
 
-@pluginspsec(firstresult=True)
+@pluginspec(firstresult=True)
 def generate_tasks(
     client,
     parameters: BaseModel,
@@ -23,7 +23,7 @@ def generate_tasks(
     pass
 
 
-@pluginspsec(firstresult=True)
+@pluginspec(firstresult=True)
 def initialize_sampler(
     sampler: CosmapSampler,
     sampling_parameters: BaseModel,
@@ -37,7 +37,7 @@ def initialize_sampler(
     pass
 
 
-@pluginspsec(firstresult=True)
+@pluginspec(firstresult=True)
 def generate_samples(sampler, n_samples):
     """
     Generate samples from the sampler. This function should return a list of samples.

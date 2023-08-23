@@ -1,9 +1,9 @@
-from cosmap.plugins import manager
+from cosmap.plugins import register_plugins, register_specs
 
 from . import plugins, task
 from .errors import CosmapBadSampleError
 
 __all__ = ["CosmapBadSampleError"]
 
-manager.add_hookspecs(plugins)
-manager.register(task)
+register_specs(plugins)
+register_plugins(task)
