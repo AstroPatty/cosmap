@@ -49,8 +49,8 @@ def build_dependency_graph(transformation_block: dict, block=None) -> networkx.D
             if not all([dep in transformation_block.keys() for dep in dependencies]):
                 raise CosmapAnalysisException(
                     "Unknown dependencies found! If this transformation needs a "
-                    "parameter, you should put the parameter name in the needed-parameters "
-                    "block of the dependency's configuration."
+                    "parameter, you should put the parameter name in the "
+                    "needed-parameters block of the dependency's configuration."
                 )
 
             for dep in dependencies:
