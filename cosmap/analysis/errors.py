@@ -1,5 +1,3 @@
-
-
 class CosmapBadSampleError(Exception):
     """
     Exception raised by the analysis when a sample
@@ -9,4 +7,5 @@ class CosmapBadSampleError(Exception):
     Attributes:
         message -- explanation of the error
     """
+
     pass

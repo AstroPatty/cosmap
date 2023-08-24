@@ -14,11 +14,20 @@ pydantic = {version = "^2.0b3", allow-prereleases = true}
 astropy = "^5.2.2"
 toml = "^0.10.2"
 click = "^8.1.3"
-heinlein = "^0.4.12"
+heinlein = "^0.5.0"
+pluggy = "^1.2.0"
 
 [tool.poetry.scripts]
 cosmap = "cosmap.entrypoint:cli"
 
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.285"
+black = "^23.7.0"
+pre-commit = "^3.3.3"
+isort = "^5.12.0"
+
+[tool.isort]
+profile = "black"
 
 [build-system]
 requires = ["poetry-core"]

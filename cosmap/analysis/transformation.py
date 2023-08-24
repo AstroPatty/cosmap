@@ -1,4 +1,3 @@
-from pathlib import Path
 class Transformation:
     """
     A transformation is a single step in inference process. It
@@ -6,5 +5,5 @@ class Transformation:
     results in a standard format. It may also depend on standard
     parameters, which are passed in the function.
     """
-    pass
 
+    pass

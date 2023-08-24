@@ -1,10 +1,11 @@
+from typing import Protocol, Type, TypeVar, runtime_checkable
+
 from . import sky
-from typing import Protocol, Type, runtime_checkable, TypeVar
 
 __all__ = ["sky", "SingleValueModel"]
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 """
 A 'model' is used in the context of this library in a very similar
 way to how it is used in Pydantic. It is a class containing a set
@@ -14,6 +15,8 @@ file, and then passed to the model, which will parse and validate
 them. The model will then be used by an Analysis object to manage
 its configuration.
 """
+
+
 @runtime_checkable
 class SingleValueModel(Protocol):
     """
@@ -21,10 +24,10 @@ class SingleValueModel(Protocol):
     can be parsed into a single value. When specified in a configuration
     file though, numerical values and the associated units will need to be
     a seperate field. A SingleValueModel is a pydantic model that
-    consumes multiple fields in a configuration file, but returns 
+    consumes multiple fields in a configuration file, but returns
     a single value. It nees to define methods that specifies the type
     it will return, and actually returns the object.
-    
+
     This is just a protocol. Implementations should inherit from pydantic.BaseModel.
     Implementations may use all of pydantic's features to validate the parameter input,
     and may take in as many parameters as is necessary. However, they must define the
@@ -40,17 +43,17 @@ class SingleValueModel(Protocol):
         """
         Return the type of the value that this model will produce.
         It may be a union type. For, example:
-        
+
         return u.Quantity | List[u.Quantity]
 
         is valid.
         """
         pass
-    
+
     def get_value(self) -> T:
         """
         Return the value after all the information is parsed. This must be
-        a "single value" in the sense that it must be representable as a 
+        a "single value" in the sense that it must be representable as a
         single python object, not in the sense that it must be a scalar quantity.
         """
         pass

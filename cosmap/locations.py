@@ -1,4 +1,5 @@
 from pathlib import Path
+
 import cosmap
 
 here = Path(cosmap.__file__).parents[0]

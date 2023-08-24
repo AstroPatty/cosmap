@@ -1,0 +1,11 @@
+{
+    "generate_tasks": {
+        "unique": true
+    },
+    "initialize_sampler": {
+        "unique": true
+    },
+    "generate_samples": {
+        "unique": true
+    }
+}

@@ -1,37 +1,24 @@
+from typing import List, TypeVar
+
 from pydantic import BaseModel
-from typing import TypeVar, List
+
 from cosmap.config import models
 from cosmap.config.analysis import AnalysisParameters
 
-def build_paramter(specification: dict, configuration: dict):
-    """
-    This function a paramter specification and its resultant value
-    into an actual type-checked paramter, using pydantic. There are
-    three cases:
 
-    The paramter is model, in which case it is specified
-    by a dot path.
-
-    The paramter is some other built-in type (float, int)
-    in which case it's just the value.
-
-        
-    """
-
-    pass
 def parse_models(param_specification: dict) -> dict:
     """
     When needed inside a analysis specification file, models are specified
     with strings. We need to parse these into model objects. This
-    function runs through the parameters and replaces strings that 
+    function runs through the parameters and replaces strings that
     start with "model" with the appropriate model. It throws an error
     if it runs into a model it can't find.
     """
     new_spec = {}
     for key, value in param_specification.items():
-        if type(value) == dict:
+        if isinstance(value, dict):
             new_spec[key] = parse_models(value)
-        elif type(value) == str and value.startswith(("models.", "extern.")):
+        elif isinstance(value, str) and value.startswith(("models.", "extern.")):
             new_spec[key] = get_model(value)
         else:
             new_spec[key] = value
@@ -50,35 +37,40 @@ def get_model(model: str) -> type[BaseModel]:
     provide any parsing and validation required.
     """
     path = model.split(".")
-    if path[0] == 'extern':
+    if path[0] == "extern":
         return get_external_model(path[1:])
     elif path[0] != "models":
-        raise AttributeError(f"Expected model path to start with 'models' but got {path[0]}")
+        raise AttributeError(
+            f"Expected model path to start with 'models' but got {path[0]}"
+        )
     obj = models
     for subpath in path[1:]:
         obj = getattr(obj, subpath)
     return obj
 
+
 def get_external_model(model: List[str]) -> type[BaseModel]:
     """
     Cosmap allows users to design their own models for their own analyses.
     This function is used to find any models that have been installed, and
-    grab them when needed. These model paths should be prefaced with 
+    grab them when needed. These model paths should be prefaced with
     "extern," so something like "extern.models.xxx.yyy"
     """
     raise NotImplementedError("External models are not yet supported")
 
+
 def verify_model_params(model: type[BaseModel], params):
     return model(**params)
 
-def find_common_params(base: TypeVar, model_to_check: BaseModel, skip = []):
+
+def find_common_params(base: TypeVar, model_to_check: BaseModel, skip=[]):
     """
-    Finds any parameters in base (by name) that are also in model_to_check and 
+    Finds any parameters in base (by name) that are also in model_to_check and
     returns them as key-value pairs. This is most often used when you have an
     analysis that creates other analyses, and some of the parameters for the
-    sub-analyses are included in the parameters of the super-analysis. This automatically
-    excludes any fields that are found in the base paramter specification.
-    
+    sub-analyses are included in the parameters of the super-analysis. This
+    automatically excludes any fields that are found in the base paramter specification.
+
     """
     standard_fields = set(AnalysisParameters.__fields__.keys())
     to_skip = set(skip)
@@ -91,5 +83,5 @@ def find_common_params(base: TypeVar, model_to_check: BaseModel, skip = []):
             value = getattr(model_to_check, key)
             if value is not None:
                 output.update({key: value})
-    
+
     return output
