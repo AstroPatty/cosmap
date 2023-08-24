@@ -1,6 +1,5 @@
 from loguru import logger
 from pydantic import BaseModel
-from pydantic.utils import deep_update
 
 from cosmap.analysis.analysis import CosmapAnalysis
 from cosmap.config.block import create_analysis_block
@@ -41,13 +40,27 @@ def build_analysis_object(analysis_data, run_configuration, **kwargs):
             f"The analysis config for '{module.__name__}'"
             "does not have a 'Main' config block"
         )
-    run_configuration = deep_update(run_configuration, additional_parameters)
+
+    run_configuration = update_nested_dict(run_configuration, additional_parameters)
     block = create_analysis_block("Main", main_config_definition, run_configuration)
     block.analysis_parameters.transformations = transformations
     analysis_object = CosmapAnalysis(
         analysis_paramters=block, plugins=plugins, **kwargs
     )
     return analysis_object
+
+
+def update_nested_dict(original, update):
+    for key, value in update.items():
+        if key not in original:
+            original[key] = value
+
+        elif isinstance(value, dict):
+            original[key] = update_nested_dict(original[key], value)
+        else:
+            original[key] = value
+
+    return original
 
 
 def load_transformations(parameters: BaseModel, block_=None):

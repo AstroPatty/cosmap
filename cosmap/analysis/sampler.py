@@ -17,7 +17,6 @@ def Sampler(sampler_parameters: BaseModel, analysis_parameters: BaseModel):
     sample_type = sampler_parameters.sample_type
     if sample_type == "Random":
         register_plugins(RandomSampler)
-        register_plugins(OtherSampler)
     return CosmapSampler(sampler_parameters, analysis_parameters)
 
 
@@ -143,9 +142,3 @@ class RandomSampler:
     @register
     def initialize_sampler(sampler):
         sampler._sampler = np.random.default_rng()
-
-
-class OtherSampler:
-    @register
-    def generate_samples(sampler, n_samples):
-        return 5
