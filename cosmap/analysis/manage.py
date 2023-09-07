@@ -1,5 +1,6 @@
 import importlib
 import json
+from copy import copy
 from pathlib import Path
 
 from cosmap import locations
@@ -50,7 +51,7 @@ def uninstall_analysis(name: str):
     write_analyses(a)
 
 
-def verify_analysis_directory(analysis_path: Path):
+def verify_analysis_directory(analysis_path: Path, amod: str = None):
     """
     Checks to see that all required files are present in the analysis directory.
     The defintions of the required files are in files.json
@@ -63,7 +64,15 @@ def verify_analysis_directory(analysis_path: Path):
     if not Path.exists(analysis_path):
         raise FileNotFoundError(f"Could not find the analysis path {analysis_path}")
 
+    if amod is not None and not (analysis_path / amod).is_dir():
+        raise FileNotFoundError(
+            f"Could not find the analysis variant {amod} in {analysis_path}"
+        )
+
     found_files = [f.name for f in analysis_path.glob("*")]
+    if amod is not None:
+        found_files.append([f.name for f in (analysis_path / amod).glob("*")])
+
     has_file = [f in found_files for f in expected_files["files"]]
     missing = []
 
@@ -120,7 +129,7 @@ def add_new_analyses(module_path: Path, model_name: str):
     write_analyses(model_data)
 
 
-def load_analysis_files(analysis_name):
+def load_analysis_files(analysis_name: str, amod: str = None):
     """
     This is a fun one. This function takes the name of an analysis, and returns
     a dictionary of:
@@ -132,12 +141,13 @@ def load_analysis_files(analysis_name):
         raise ValueError(f"Analysis {analysis_name} not found!")
 
     analysis_path = Path(a[analysis_name]["path"])
-    verify_analysis_directory(analysis_path)
+    verify_analysis_directory(analysis_path, amod)
 
     module = importlib.machinery.ModuleSpec(analysis_name, None)
     module = importlib.util.module_from_spec(module)
 
     outputs = {}
+
     for file in expected_files["files"]:
         p = analysis_path / file
 
@@ -150,5 +160,109 @@ def load_analysis_files(analysis_name):
                 file_module = importlib.util.module_from_spec(file_spec)
                 setattr(module, p.stem, file_module)
                 file_spec.loader.exec_module(file_module)
-    outputs.update({"module": module})
+
+    if amod is not None:
+        outputs = combine_with_mod(outputs, analysis_path / amod, module)
+    else:
+        outputs.update({"module": module})
+
     return outputs
+
+
+def combine_with_mod(config_files, amod_directory, module_obj):
+    """
+    Combine a base analysis with new behavior/config defined in a variant. This
+    function follows the following rules:
+
+    Transformations and transformation definitions will completely overwrite the
+    equivalent in the base analysis.
+
+    Configuration will be merged, unless a parameter is defined in both the base
+    analysis and the variant. In that case, the variant parameter will overwrite
+    the base analysis parameter.
+
+    Plugins will be merged, with the variant plugins taking precedence over the
+    base analysis plugins in case of a naming conflict.
+    """
+    new_files = copy(config_files)
+    amod_files = load_analysis_files(amod_directory.name)  # Load the variant files
+    # Start with transformations, because they're easy.
+    transformation_config = amod_files.get("transformations", None)
+    transformation_defs = getattr(amod_files["module"], "transformations", None)
+    if all(t is not None for t in [transformation_config, transformation_defs]):
+        new_files["transformations"] = transformation_config
+        new_files["module"].transformations = transformation_defs
+
+    elif not all(t is None for t in [transformation_config, transformation_defs]):
+        # One exists, the other doesn't
+        raise ValueError(
+            "To overwrite transformations, the variant must contain both"
+            "a transformations.json file and a transformations.py file"
+        )
+
+    # Now, configuration
+    if (params := amod_files.get("parameters", None)) is not None:
+        if (base_params := config_files.get("config", None)) is not None:
+            params = combine_dicts(base_params, params)
+        else:
+            params = params
+        new_files["parameters"] = params
+
+    if (defs := getattr(amod_files["module"], "config", None)) is not None:
+        # todo: pydantic models
+        if (cfg_models := getattr(defs, "config", None)) is not None:
+            base_models = getattr(config_files["module"], "config", None)
+            if base_models is not None:
+                cfg_models = combine_mods(base_models, cfg_models)
+            new_files["module"].config = cfg_models
+        # Finally, plugins
+        plugin_config = amod_files.get("plugins", None)
+        plugin_defs = getattr(defs, "plugins", None)
+        if all(t is not None for t in [plugin_config, plugin_defs]):
+            new_files["plugins"] = combine_dicts(
+                config_files.get("plugins", {}), plugin_config
+            )
+            new_plugin_defs = combine_mods(config_files["module"].plugins, plugin_defs)
+            new_files["module"].plugins = new_plugin_defs
+
+        elif not all(t is None for t in [plugin_config, plugin_defs]):
+            # One exists, the other doesn't
+            raise ValueError(
+                "To overwrite plugins, the variant must contain both"
+                "a plugins.json file and a plugins.py file"
+            )
+
+
+def combine_dicts(left: dict, right: dict):
+    """
+    Combine two dicts recursively. Right takes precedence over left if there
+    are key conflicts. If a key is a dictionary in left, it must also be
+    a dictionary in right or this method will through an error.
+    """
+    new_dict = copy(left)
+    for key, value in right.items():
+        if key not in left:
+            new_dict[key] = value
+        elif isinstance(value, dict) and isinstance(left[key], dict):
+            new_dict[key] = combine_dicts(new_dict.get(key, {}), value)
+        elif not isinstance(value, dict) and not isinstance(left[key], dict):
+            new_dict[key] = value
+        else:
+            raise ValueError(f"Cannot combine {left[key]} and {value}")
+    return new_dict
+
+
+def combine_mods(mod_a, mod_b):
+    """
+    Combines two modules. The second takes precedence over the first.
+    This method is not recursive, it only looks a top-level objets.
+    """
+    new_mod = copy(mod_a)
+    for key, value in mod_b.__dict__.items():
+        if not key.startswith("__"):
+            setattr(new_mod, key, value)
+    return new_mod
+
+
+def combine_pydantic_model(model_a, model_b):
+    pass
