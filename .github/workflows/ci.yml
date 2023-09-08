@@ -1,0 +1,39 @@
+name: Release
+on:
+  push:
+    tags:
+      - '*'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+
+
+jobs:
+  release:
+    name: release-all
+    runs-on: ubuntu-latest
+    if: "startsWith(github.ref, 'refs/tags/')"
+    needs: [linux, windows, macos, sdist]
+    permissions:
+        contents: write
+
+    steps:
+    - name: Build and publish to pypi
+      uses: JRubics/poetry-publish@v1.17
+      with:
+        python_version: "3.10.11"
+        poetry_version: "==1.5.1" # (PIP version specifier syntax)
+        pypi_token: ${{ secrets.PYPI_TOKEN }}
+        ignore_dev_requirements: "yes"
+
+    - name: "Build Changelog"
+      id: build_changelog
+      uses: mikepenz/release-changelog-builder-action@v4
+    - uses: actions/download-artifact@v3
+    - uses: ncipollo/release-action@v1.13.0
+      with:
+        token: ${{ secrets.RELEASE_TOKEN }}
+        body: ${{ steps.build_changelog.outputs.changelog }}
