@@ -17,7 +17,6 @@ jobs:
           pyproject-path: "./pyproject.toml"    # default value
       
       - name: check output
-        id: versioncheck
         run: |
             echo "Output: ${{ steps.versioncheck.outputs.local_version_is_higher }}"  # 'true' or 'false
             echo "Local version: ${{ steps.versioncheck.outputs.local_version }}"     # e.g., 0.1.1
