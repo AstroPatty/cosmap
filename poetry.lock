@@ -406,28 +406,40 @@ test = ["objgraph", "psutil"]
 
 [[package]]
 name = "heinlein"
-version = "0.5.0"
+version = "0.6.7"
 description = "Library for interacting with large astronomical survey datasets"
 optional = false
-python-versions = ">=3.8,<4.0"
+python-versions = ">=3.9"
 files = [
-    {file = "heinlein-0.5.0-py3-none-any.whl", hash = "sha256:deb298909277dec375a4d249ce3ed886dde22611a52b89920f1fb988840908e9"},
-    {file = "heinlein-0.5.0.tar.gz", hash = "sha256:0a1c57e5f43c246e3e011f73d60e05fe8c0341d8000c447268535ecc5802d2fc"},
+    {file = "heinlein-0.6.7-py3-none-macosx_10_7_x86_64.whl", hash = "sha256:36331fd5e558d9402a88fba85e84ee0c80433fdb0ae8498b24785f2070e625da"},
+    {file = "heinlein-0.6.7-py3-none-macosx_11_0_arm64.whl", hash = "sha256:d7bcb2088ce01c9f8f02f5d42ca3c66be96464a596abf58c5b012b644420ed68"},
+    {file = "heinlein-0.6.7-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5888241c7cdbba3ff9d69e79c7d55ff9a6824385f8127f33e0b28c9849ff49bb"},
+    {file = "heinlein-0.6.7-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:3ede4cfa6843467c2b29c8ff2118449e88d0151d3c36414657755c4bb7ae18d8"},
+    {file = "heinlein-0.6.7-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:5e146668db204578b60a21b189e694438d63d953ffb19deb30c2db0574fc2aff"},
+    {file = "heinlein-0.6.7-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:aae1ca44e7c9389a91325a3382e97b7b4507884733f02796a6fd748cc8d71eeb"},
+    {file = "heinlein-0.6.7-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8a1d0d3f542dbe9a17c89cbd90cab109b852cd968e285c4d739bb4cde3f61e2e"},
+    {file = "heinlein-0.6.7-py3-none-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:83cd7a738dc2641d845efced7d045ccc524a6036fd7e86c9047db088a64e6f41"},
+    {file = "heinlein-0.6.7-py3-none-win32.whl", hash = "sha256:2851f96755fff73120ab15e3c66260d6e3cb82dcf40874a836a5ee01535283b9"},
+    {file = "heinlein-0.6.7-py3-none-win_amd64.whl", hash = "sha256:4d31e5036d3d00e7cb0af706565a0bfb6840b92decfbcc9b51c0a1b990e56e44"},
+    {file = "heinlein-0.6.7.tar.gz", hash = "sha256:b0fe9b05608ea90e301dff04df9b66dc5cb789fd1e0a2b685c197d9267af4d5c"},
 ]
 
 [package.dependencies]
-appdirs = ">=1.4.4,<2.0.0"
-astropy = ">=5.1,<6.0"
-cacheout = ">=0.14.1,<0.15.0"
-dynaconf = ">=3.1.9,<4.0.0"
-numpy = ">=1.23.1,<2.0.0"
-pandas = ">=1.4.3,<2.0.0"
-portalocker = ">=2.5.1,<3.0.0"
-pymongo = ">=4.2.0,<5.0.0"
-regions = "0.7"
-Shapely = ">=2.0.0,<3.0.0"
-spherical-geometry = ">=1.2.22,<2.0.0"
-sqlalchemy = ">=2.0.20,<3.0.0"
+appdirs = ">=1.4.4"
+astropy = ">=5.1"
+cacheout = ">=0.14.1"
+dynaconf = ">=3.1.9"
+numpy = ">=1.23.1"
+pandas = ">=1.4.3"
+portalocker = ">=2.5.1"
+pymongo = ">=4.2.0"
+regions = ">=0.7"
+Shapely = ">=2.0.0"
+spherical-geometry = ">=1.2.22"
+sqlalchemy = ">=2.0.20"
+
+[package.extras]
+develop = ["black (>=23.7.0)", "isort (>=5.12.0)", "pre-commit (>=3.3.3)", "ruff (>=0.0.285)"]
 
 [[package]]
 name = "identify"
@@ -1729,4 +1741,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "1925cd72b8c473612bdce5e69a801c10a18c9336f18b1378674e7fcc988cad31"
+content-hash = "766d60c783726bb399f9852bc225c5921db3bc65c191fa91afa90789aa214f9d"

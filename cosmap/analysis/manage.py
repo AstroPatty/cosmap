@@ -185,7 +185,14 @@ def combine_with_mod(config_files, amod_directory, module_obj):
     base analysis plugins in case of a naming conflict.
     """
     new_files = copy(config_files)
-    amod_files = load_analysis_files(amod_directory.name)  # Load the variant files
+    try:
+        amod_files = load_analysis_files(amod_directory.name)  # Load the variant files
+    except ValueError:
+        raise FileNotFoundError(
+            f"No files present in analysis variant `{amod_directory.name}`"
+            f" at {amod_directory}"
+        )
+
     # Start with transformations, because they're easy.
     transformation_config = amod_files.get("transformations", None)
     transformation_defs = getattr(amod_files["module"], "transformations", None)
