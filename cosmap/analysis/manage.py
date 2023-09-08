@@ -235,35 +235,36 @@ def combine_with_mod(config_files, amod_directory):
 
     # Now, configuration
     if (params := amod_files.get("parameters", None)) is not None:
-        if (base_params := config_files.get("config", None)) is not None:
+        if (base_params := config_files.get("parameters", None)) is not None:
             params = combine_dicts(base_params, params)
         else:
             params = params
         new_files["parameters"] = params
 
+    # pydatnic models
     if (defs := getattr(amod_files["module"], "config", None)) is not None:
-        # todo: pydantic models
-        if (cfg_models := getattr(defs, "config", None)) is not None:
-            base_models = getattr(config_files["module"], "config", None)
-            if base_models is not None:
-                cfg_models = combine_mods(base_models, cfg_models)
-            new_files["module"].config = cfg_models
-        # Finally, plugins
-        plugin_config = amod_files.get("plugins", None)
-        plugin_defs = getattr(defs, "plugins", None)
-        if all(t is not None for t in [plugin_config, plugin_defs]):
-            new_files["plugins"] = combine_dicts(
-                config_files.get("plugins", {}), plugin_config
-            )
-            new_plugin_defs = combine_mods(config_files["module"].plugins, plugin_defs)
-            new_files["module"].plugins = new_plugin_defs
+        base_models = getattr(config_files["module"], "config", None)
+        if base_models is not None:
+            cfg_models = combine_mods(base_models, defs)
+        else:
+            cfg_models = defs
+        new_files["module"].config = cfg_models
+    # Finally, plugins
+    plugin_config = amod_files.get("plugins", None)
+    plugin_defs = getattr(defs, "plugins", None)
+    if all(t is not None for t in [plugin_config, plugin_defs]):
+        new_files["plugins"] = combine_dicts(
+            config_files.get("plugins", {}), plugin_config
+        )
+        new_plugin_defs = combine_mods(config_files["module"].plugins, plugin_defs)
+        new_files["module"].plugins = new_plugin_defs
 
-        elif not all(t is None for t in [plugin_config, plugin_defs]):
-            # One exists, the other doesn't
-            raise ValueError(
-                "To overwrite plugins, the variant must contain both"
-                "a plugins.json file and a plugins.py file"
-            )
+    elif not all(t is None for t in [plugin_config, plugin_defs]):
+        # One exists, the other doesn't
+        raise ValueError(
+            "To overwrite plugins, the variant must contain both"
+            "a plugins.json file and a plugins.py file"
+        )
     return new_files
 
 
@@ -291,11 +292,10 @@ def combine_mods(mod_a, mod_b):
     Combines two modules. The second takes precedence over the first.
     This method is not recursive, it only looks a top-level objets.
     """
-    new_mod = copy(mod_a)
     for key, value in mod_b.__dict__.items():
         if not key.startswith("__"):
-            setattr(new_mod, key, value)
-    return new_mod
+            setattr(mod_a, key, value)
+    return mod_a
 
 
 def combine_pydantic_model(model_a, model_b):
