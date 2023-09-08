@@ -1,7 +1,9 @@
 import importlib
 import json
 from copy import copy
+from inspect import isclass
 from pathlib import Path
+from types import ModuleType
 
 from cosmap import locations
 
@@ -222,16 +224,15 @@ def combine_with_mod(config_files, amod_directory):
     # Start with transformations, because they're easy.
     transformation_config = amod_files.get("transformations", None)
     transformation_defs = getattr(amod_files["module"], "transformations", None)
-    if all(t is not None for t in [transformation_config, transformation_defs]):
-        new_files["transformations"] = transformation_config
-        new_files["module"].transformations = transformation_defs
-
-    elif not all(t is None for t in [transformation_config, transformation_defs]):
-        # One exists, the other doesn't
-        raise ValueError(
-            "To overwrite transformations, the variant must contain both"
-            "a transformations.json file and a transformations.py file"
+    if transformation_defs is not None:
+        tdata = combine_transformations(
+            new_files["transformations"],
+            new_files["module"].transformations,
+            transformation_config,
+            transformation_defs,
         )
+        new_files["transformations"] = tdata[0]
+        new_files["module"].transformations = tdata[1]
 
     # Now, configuration
     if (params := amod_files.get("parameters", None)) is not None:
@@ -266,6 +267,75 @@ def combine_with_mod(config_files, amod_directory):
             "a plugins.json file and a plugins.py file"
         )
     return new_files
+
+
+def combine_transformations(
+    left_spec: dict,
+    left_impl: ModuleType,
+    right_spec: dict = None,
+    right_impl: ModuleType = None,
+):
+    """
+    Combine transformations with the following rules:
+    - If a transformation is defined in both, the right one takes precedence
+    - If a transformation is defined in the right but not the left, it must
+      also be defined in the right spec
+
+    Transformation implementations are defind as classes, with static methods
+    for the individual transformations.
+    """
+    if right_impl is None and right_spec is None:
+        return left_spec, left_impl
+    for block_name, block_impl in right_impl.__dict__.items():
+        if not isclass(block_impl) or block_name.startswith("__"):
+            continue
+        # simple case, brand new block
+        if block_name not in left_spec:
+            setattr(left_impl, block_name, block_impl)
+            if right_spec is None or not (spec := right_spec.get(block_name, {})):
+                raise ValueError(
+                    f"Transformation block `{block_name}`" " is not defined in the spec"
+                )
+            left_spec[block_name] = spec
+            continue
+        # Block already exists, need to check for new transformations
+        for trans_name, trans_impl in block_impl.__dict__.items():
+            left_block_impl = getattr(left_impl, block_name)
+            left_block_spec = left_spec[block_name]
+            right_block_spec = right_spec.get(block_name, {})
+            # These should have already been verified to exist
+            if trans_name.startswith("__") or not callable(trans_impl):
+                continue
+            if trans_name not in left_block_spec:
+                # New transformation
+                if trans_name not in right_block_spec:
+                    raise ValueError(
+                        f"New transformation {trans_name} " "must have a spec"
+                    )
+                setattr(left_block_impl, trans_name, trans_impl)
+                left_block_spec[trans_name] = right_block_spec[trans_name]
+            else:
+                setattr(left_block_impl, trans_name, trans_impl)
+                if trans_name in right_block_spec:
+                    left_block_spec[trans_name] = right_block_spec[trans_name]
+
+    return left_spec, left_impl
+
+    for key, value in right_impl.__dict__.items():
+        if not key.startswith("__") and key in left_spec:
+            # Ovewrite the left implementation
+            setattr(left_impl, key, value)
+        elif not key.startswith("__") and key not in left_spec:
+            # New transformation, needs a specification
+            if right_spec is None or not hasattr(right_spec, key):
+                raise ValueError(f"Transformation {key} is not defined in the spec")
+    for key, value in right_spec.items():
+        if key not in right_impl.__dict__:
+            raise ValueError(
+                f"Transformation {key} is not defined" " in the implementation"
+            )
+        left_spec[key] = value
+    return left_spec, left_impl
 
 
 def combine_dicts(left: dict, right: dict):
