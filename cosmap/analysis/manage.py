@@ -14,6 +14,11 @@ uninstalling, and building analysis modules from a path for use in a Cosmap anal
 expected_file_path = Path(__file__).parent / "files.json"
 with open(expected_file_path, "r") as f:
     expected_files = json.load(f)
+    output = {}
+    for key, value in expected_files["files"].items():
+        path_key = Path(key)
+        output.update({path_key: value})
+    expected_files = output
 
 
 def install_analysis(analysis_path: Path, name=None):
@@ -73,14 +78,14 @@ def verify_analysis_directory(analysis_path: Path, amod: str = None):
     if amod is not None:
         found_files.append([f.name for f in (analysis_path / amod).glob("*")])
 
-    has_file = [f in found_files for f in expected_files["files"]]
+    has_file = [f.name in found_files for f in expected_files]
     missing = []
 
-    for (fname, fdata), found in zip(expected_files["files"].items(), has_file):
+    for (fname, fdata), found in zip(expected_files.items(), has_file):
         if not found and fdata["required"]:
             missing.append(fname)
     if missing:
-        missing = "\n" + "\n".join(missing)
+        missing = "\n" + "\n".join([m.name for m in missing])
         raise FileNotFoundError(
             f"Could not find the following required files: {missing}"
         )
@@ -143,33 +148,53 @@ def load_analysis_files(analysis_name: str, amod: str = None):
     analysis_path = Path(a[analysis_name]["path"])
     verify_analysis_directory(analysis_path, amod)
 
-    module = importlib.machinery.ModuleSpec(analysis_name, None)
-    module = importlib.util.module_from_spec(module)
+    found_files = load_directory_files(analysis_path, analysis_name)
+    missing_jsons = [
+        f for f in expected_files if (f.suffix == ".json" and f.stem not in found_files)
+    ]
 
-    outputs = {}
+    missing_pythons = [
+        f
+        for f in expected_files
+        if (f.suffix == ".py" and not hasattr(found_files["module"], f.name))
+    ]
 
-    for file in expected_files["files"]:
-        p = analysis_path / file
-
-        if p.exists():
-            if p.suffix == ".json":
-                with open(p, "r") as f:
-                    outputs.update({p.stem: json.load(f)})
-            elif p.suffix == ".py":
-                file_spec = importlib.util.spec_from_file_location(p.stem, p)
-                file_module = importlib.util.module_from_spec(file_spec)
-                setattr(module, p.stem, file_module)
-                file_spec.loader.exec_module(file_module)
+    if (missing_jsons or missing_pythons) and amod is None:
+        raise FileNotFoundError(
+            f"Analysis {analysis_name} is missing" " some required files! \n"
+        )
 
     if amod is not None:
-        outputs = combine_with_mod(outputs, analysis_path / amod, module)
-    else:
-        outputs.update({"module": module})
+        found_files = combine_with_mod(found_files, analysis_path / amod)
 
+    return found_files
+
+
+def load_directory_files(directory: Path, name: str) -> dict:
+    """
+    Loads files in a given directory. This does not do any checking to see if the files
+    are valid, or if they are the ones we expect to find. Currently loads json and py
+    files. Returns a dictionary.
+    """
+    found_files = [f.name for f in directory.glob("*")]
+    outputs = {}
+    module = importlib.machinery.ModuleSpec(name, None)
+    module = importlib.util.module_from_spec(module)
+    for file in found_files:
+        p = directory / file
+        if p.suffix == ".json":
+            with open(p, "r") as f:
+                outputs.update({p.stem: json.load(f)})
+        elif p.suffix == ".py":
+            file_spec = importlib.util.spec_from_file_location(p.stem, p)
+            file_module = importlib.util.module_from_spec(file_spec)
+            setattr(module, p.stem, file_module)
+            file_spec.loader.exec_module(file_module)
+    outputs.update({"module": module})
     return outputs
 
 
-def combine_with_mod(config_files, amod_directory, module_obj):
+def combine_with_mod(config_files, amod_directory):
     """
     Combine a base analysis with new behavior/config defined in a variant. This
     function follows the following rules:
@@ -186,10 +211,11 @@ def combine_with_mod(config_files, amod_directory, module_obj):
     """
     new_files = copy(config_files)
     try:
-        amod_files = load_analysis_files(amod_directory.name)  # Load the variant files
+        amod_files = load_directory_files(amod_directory, amod_directory.name)
+        # Load the variant files
     except ValueError:
         raise FileNotFoundError(
-            f"No files present in analysis variant `{amod_directory.name}`"
+            f"No valid files present in analysis variant `{amod_directory.name}`"
             f" at {amod_directory}"
         )
 
@@ -238,6 +264,7 @@ def combine_with_mod(config_files, amod_directory, module_obj):
                 "To overwrite plugins, the variant must contain both"
                 "a plugins.json file and a plugins.py file"
             )
+    return new_files
 
 
 def combine_dicts(left: dict, right: dict):
