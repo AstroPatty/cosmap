@@ -35,9 +35,12 @@ def run_analysis(analysis_path: Path):
             f"Could not find a base analysis in the config " f"file {analysis_path}"
         )
 
-    logger.info(f"Running analysis {base_analysis}")
+    if (amod := (config.get("analysis-mod", None))) is not None:
+        logger.info(f"Running analysis `{base_analysis}` with variant `{amod}`")
+    else:
+        logger.info(f"Running analysis {base_analysis}")
     logger.info(f"Loading analysis files for {base_analysis}")
-    analysis_data = manage.load_analysis_files(base_analysis)
+    analysis_data = manage.load_analysis_files(base_analysis, amod)
     logger.info(f"Preparing analysis {analysis_path.stem}")
     analysis_object = build_analysis_object(analysis_data, config)
     logger.info(f"Running analysis {analysis_path.stem} ")
