@@ -134,7 +134,6 @@ This will install our analysis
 
 Now that we've defined our analysis, and installed it, let's go ahead and run it and actually see what happens. Navigate to a new folder, and create a json file. You can call it whatever you want, but we'll call it "quickstart_test.json" here. Copy the following contents into it:
 
-
 ```json
 {
     "base-analysis": "quickstart",
@@ -143,7 +142,7 @@ Now that we've defined our analysis, and installed it, let's go ahead and run it
     "dataset_parameters" : {
         "dataset_name": "cfht"
     },
-	"sampling_parameters": {
+    "sampling_parameters": {
 		"region_type": "Rectangle",
 		"region_bounds": {
 			"value": [31.0, -11.0, 38, -4],
@@ -153,11 +152,11 @@ Now that we've defined our analysis, and installed it, let's go ahead and run it
 		"n_samples": 1000
 
 	},
-	"radius": {
+    "radius": {
 		"value": 2,
 		"units": "arcmin"
 	},
-	"min_radius" : {
+    "min_radius" : {
 		"value": 5,
 		"units": "arcsec"
 	}
