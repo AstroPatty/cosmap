@@ -143,23 +143,23 @@ Now that we've defined our analysis, and installed it, let's go ahead and run it
         "dataset_name": "cfht"
     },
     "sampling_parameters": {
-		"region_type": "Rectangle",
-		"region_bounds": {
-			"value": [31.0, -11.0, 38, -4],
-			"units": "degree"
-		},
-		"sample_type": "Random",
-		"n_samples": 1000
+        "region_type": "Rectangle",
+        "region_bounds": {
+            "value": [31.0, -11.0, 38, -4],
+            "units": "degree"
+        },
+        "sample_type": "Random",
+        "n_samples": 1000
 
-	},
+    },
     "radius": {
 		"value": 2,
 		"units": "arcmin"
-	},
+    },
     "min_radius" : {
 		"value": 5,
 		"units": "arcsec"
-	}
+    }
 }
 ```
 
