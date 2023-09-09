@@ -134,11 +134,12 @@ This will install our analysis
 
 Now that we've defined our analysis, and installed it, let's go ahead and run it and actually see what happens. Navigate to a new folder, and create a json file. You can call it whatever you want, but we'll call it "quickstart_test.json" here. Copy the following contents into it:
 
+
 ```json
 {
-	"base-analysis": "quickstart",
-	"threads": 4,
-	"output": "/path/to/output/location.csv",
+    "base-analysis": "quickstart",
+    "threads": 4,
+    "output": "/path/to/output/location.csv",
     "dataset_parameters" : {
         "dataset_name": "cfht"
     },
