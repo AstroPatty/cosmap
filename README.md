@@ -116,7 +116,8 @@ This file defines any config information that your analysis will need, but shoul
         "output_formats": "dataframe",
         "write_format": "csv"
     }
-}```
+}
+```
 
 This tells cosmap that we expect it to give us data from circular regions of the sky, and that the radius of that region can be found in the "Main" parameter block. It also tells cosmap that we will be outputting tabular data. Don't worry that our last transformation doesn't actually return a dataframe. `cosmap` will handle that for us.
 
