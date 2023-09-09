@@ -153,12 +153,12 @@ Now that we've defined our analysis, and installed it, let's go ahead and run it
 
     },
     "radius": {
-		"value": 2,
-		"units": "arcmin"
+        "value": 2,
+        "units": "arcmin"
     },
     "min_radius" : {
-		"value": 5,
-		"units": "arcsec"
+        "value": 5,
+        "units": "arcsec"
     }
 }
 ```
