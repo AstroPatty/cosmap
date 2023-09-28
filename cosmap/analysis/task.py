@@ -77,13 +77,17 @@ def generate_tasks(
         raise NotImplementedError("Only circular samples are currently supported")
 
     logger.info(f"Submitting {n_chunks} chunks to {n_workers} workers")
+    try:
+        sample_dimension = max(sample_dimensions)
+    except TypeError:
+        sample_dimension = sample_dimensions
     for c in chunks:
         splits = np.array_split(c, n_workers)
         f = partial(
             main_task,
             dtypes=needed_dtypes,
             sample_shape="cone",
-            sample_dimensions=max(sample_dimensions),
+            sample_dimensions=sample_dimension,
             pipeline_function=pipeline_function,
         )
         tasks = client.map(f, splits)

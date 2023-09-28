@@ -25,7 +25,7 @@ def get_frame_width(sample_shape: str, sample_dimensions):
         case "Circle":
             try:
                 return max(sample_dimensions)
-            except AttributeError:
+            except TypeError:
                 return sample_dimensions
         case _:
             raise CosmapSamplerException(f"Could not find sample shape {sample_shape}")
