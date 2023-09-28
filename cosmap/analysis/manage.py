@@ -152,13 +152,22 @@ def load_analysis_files(analysis_name: str, amod: str = None):
 
     found_files = load_directory_files(analysis_path, analysis_name)
     missing_jsons = [
-        f for f in expected_files if (f.suffix == ".json" and f.stem not in found_files)
+        f
+        for f in expected_files
+        if (
+            f.suffix == ".json"
+            and f.stem not in found_files
+            and expected_files[f]["required"]
+        )
     ]
-
     missing_pythons = [
         f
         for f in expected_files
-        if (f.suffix == ".py" and not hasattr(found_files["module"], f.name))
+        if (
+            f.suffix == ".py"
+            and not hasattr(found_files["module"], f.stem)
+            and expected_files[f]["required"]
+        )
     ]
 
     if (missing_jsons or missing_pythons) and amod is None:
