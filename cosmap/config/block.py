@@ -31,7 +31,6 @@ def create_analysis_block(name, analysis_template, values):
     top_fields.update({"analysis_parameters": analysis_block})
     top_block = create_parameter_block("Main", template, top_fields)
     top_block.analysis_parameters = analysis_block
-
     return top_block
 
 

@@ -32,6 +32,8 @@ def build_analysis_object(analysis_data, run_configuration, **kwargs):
     run_configuration.update(
         {"analysis_definition": module, "transformations": transformations}
     )
+    if plugins:
+        run_configuration.update({"plugins": plugins})
     config_definition = getattr(module, "config")
     try:
         main_config_definition = getattr(config_definition, "Main")

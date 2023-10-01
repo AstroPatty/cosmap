@@ -177,7 +177,6 @@ def load_analysis_files(analysis_name: str, amod: str = None):
 
     if amod is not None:
         found_files = combine_with_mod(found_files, analysis_path / amod)
-
     return found_files
 
 

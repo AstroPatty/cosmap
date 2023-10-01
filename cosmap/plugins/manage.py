@@ -37,6 +37,7 @@ def register_plugins(plugins: object):
                 )
 
             pconfig["impl"] = True
+
     name = manager.register(plugins)
 
 
@@ -54,5 +55,4 @@ def request(plugin_name: str):
         raise CosmapPluginException(
             f"Plugin '{plugin_name}' has no hook implementations!"
         )
-
     return plugin

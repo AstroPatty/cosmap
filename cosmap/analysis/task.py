@@ -39,7 +39,7 @@ def get_tasks(
     return result
 
 
-@register(tryfirst=True)
+@register
 def generate_tasks(
     client,
     parameters: BaseModel,

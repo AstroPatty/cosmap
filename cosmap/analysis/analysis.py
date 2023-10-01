@@ -38,9 +38,9 @@ class CosmapAnalysis:
 
     def setup(self, *args, **kwargs):
         self.verify_analysis()
+
         if hasattr(self.parameters.analysis_parameters, "plugins"):
             register_plugins(self.parameters.analysis_definition.plugins)
-
         self.sampler = Sampler(
             self.parameters.sampling_parameters, self.parameters.analysis_parameters
         )
