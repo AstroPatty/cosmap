@@ -66,7 +66,7 @@ class CosmapSampler:
             case _:
                 raise CosmapSamplerException(f"Could not find frame size {frame_size}")
 
-        df = [-frame_width, -frame_height, frame_width, frame_height]
+        df = [frame_width, frame_height, -frame_width, -frame_height]
         try:
             center = self.sampler_parameters.region_center
             dims = self.sampler_parameters.region_dimensions
