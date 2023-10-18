@@ -17,7 +17,7 @@ In short, if your analysis makes use of some large sky survey, like DES, HSC-SSP
 
 `cosmap` can be installed easily with pip:
 
-`>> pip install heinlein`
+`>> pip install cosmap`
 
 Navigate somewhere on your machine you don't mind having an extra folder, and initialize a new cosmap analysis:
 
