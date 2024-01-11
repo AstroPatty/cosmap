@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List
 
+from loguru import logger
 from pydantic import BaseModel
 
 from . import parser, writer
@@ -33,6 +34,11 @@ class outputHandler(ABC):
 
 class dataframeOutputHandler(outputHandler):
     def __init__(self, path: Path, writer: type, writer_config: dict = {}):
+        if path.exists():
+            logger.warning(f"Output path {path} already exists, overwriting")
+            path.unlink()
+        elif not path.parent.exists():
+            path.parent.mkdir(parents=True, exist_ok=True)
         self._writer = writer(path=path, **writer_config)
         self._parser = parser.dataFrameOutputParser()
 
