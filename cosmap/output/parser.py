@@ -49,6 +49,11 @@ class dataFrameOutputParser(cosmapOutputParser):
     a DataFrame, and appends it to a DataFrame. In general, appending is a very
     expensive operation, so this parser allocates memory in chunks, and only increases
     the amount of memory when the chunk fills.
+
+    For large jobs with a large number of outputs, this parser can use a lot of memory.
+    To avoid this, this particular parser only stores the current chunk, and appends it
+    to the file when it writes. It does check to ensure columns are consistent between
+    chunks.
     """
 
     output_format = pd.DataFrame
@@ -96,12 +101,18 @@ class dataFrameOutputParser(cosmapOutputParser):
     def get(self, *args, **kwargs):
         if self.tally:
             input_series = {c: self.series[c][: self.tally] for c in self.series}
-            return pd.DataFrame.from_dict(input_series, orient="columns")
+            result = pd.DataFrame.from_dict(input_series, orient="columns")
+            self.clear()
+            return result
+        # Now, we reset the parser but keep the orig
         return None
 
     def clear(self, *args, **kwargs):
+        """
+        Clears any output that has been parsed, but keeps the original configuration.
+        """
         self.tally = 0
-        self.initialized = False
-        self.series = {}
-        self.columns = set()
-        self.dtypes = {}
+        self.series = {
+            c: np.empty(self.chunksize, dtype=self.dtypes[c]) for c in self.columns
+        }
+        self.size = self.chunksize

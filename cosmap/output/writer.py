@@ -24,7 +24,7 @@ class dataframeCsvWriter(cosmapOutputWriter):
         self._path = path
 
     def write_output(self, output: pd.DataFrame, *args, **kwargs):
-        output.to_csv(self._path, index=False, *args, **kwargs)
+        output.to_csv(self._path, index=False, mode="a", *args, **kwargs)
 
 
 known_writers = {"csv": dataframeCsvWriter}
