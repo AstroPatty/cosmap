@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 import pandas as pd
 
@@ -20,11 +21,18 @@ class cosmapOutputWriter(ABC):
 
 
 class dataframeCsvWriter(cosmapOutputWriter):
-    def __init__(self, path, *args, **kwargs):
+    def __init__(self, path: Path, *args, **kwargs):
         self._path = path
 
     def write_output(self, output: pd.DataFrame, *args, **kwargs):
-        output.to_csv(self._path, index=False, *args, **kwargs)
+        output.to_csv(
+            self._path,
+            index=False,
+            mode="a",
+            header=not self._path.exists(),
+            *args,
+            **kwargs,
+        )
 
 
 known_writers = {"csv": dataframeCsvWriter}
