@@ -102,6 +102,7 @@ class dataFrameOutputParser(cosmapOutputParser):
         if self.tally:
             input_series = {c: self.series[c][: self.tally] for c in self.series}
             result = pd.DataFrame.from_dict(input_series, orient="columns")
+            print(result.columns)
             self.clear()
             return result
         # Now, we reset the parser but keep the orig
@@ -113,6 +114,7 @@ class dataFrameOutputParser(cosmapOutputParser):
         """
         self.tally = 0
         self.series = {
-            c: np.empty(self.chunksize, dtype=self.dtypes[c]) for c in self.columns
+            c: np.empty(self.chunksize, dtype=self.dtypes[c])
+            for c in self.series.keys()
         }
         self.size = self.chunksize
