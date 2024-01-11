@@ -102,7 +102,6 @@ class dataFrameOutputParser(cosmapOutputParser):
         if self.tally:
             input_series = {c: self.series[c][: self.tally] for c in self.series}
             result = pd.DataFrame.from_dict(input_series, orient="columns")
-            print(result.columns)
             self.clear()
             return result
         # Now, we reset the parser but keep the orig
