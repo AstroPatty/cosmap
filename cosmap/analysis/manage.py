@@ -1,7 +1,7 @@
 import importlib
 import json
 from copy import copy
-from inspect import isclass
+from inspect import getmodule, isclass
 from pathlib import Path
 from types import ModuleType
 
@@ -296,6 +296,10 @@ def combine_transformations(
         return left_spec, left_impl
     for block_name, block_impl in right_impl.__dict__.items():
         if not isclass(block_impl) or block_name.startswith("__"):
+            continue
+
+        elif getmodule(block_impl) != right_impl:
+            # Skip imported stuff
             continue
         # simple case, brand new block
         if block_name not in left_spec:
