@@ -1,7 +1,7 @@
 import importlib
 import json
 from copy import copy
-from inspect import getmodule, isclass
+from inspect import getmembers, getmodule, isclass
 from pathlib import Path
 from types import ModuleType
 
@@ -11,7 +11,6 @@ from cosmap import locations
 This file contains functions for managing analyses. This includes installing, 
 uninstalling, and building analysis modules from a path for use in a Cosmap analysis
 """
-
 
 expected_file_path = Path(__file__).parent / "files.json"
 with open(expected_file_path, "r") as f:
@@ -230,7 +229,7 @@ def combine_with_mod(config_files, amod_directory):
         )
 
     # Start with transformations, because they're easy.
-    transformation_config = amod_files.get("transformations", None)
+    transformation_config = amod_files.get("transformations", {})
     transformation_defs = getattr(amod_files["module"], "transformations", None)
     if transformation_defs is not None:
         tdata = combine_transformations(
@@ -294,11 +293,11 @@ def combine_transformations(
     """
     if right_impl is None and right_spec is None:
         return left_spec, left_impl
-    for block_name, block_impl in right_impl.__dict__.items():
+    for block_name, block_impl in getmembers(right_impl):
         if not isclass(block_impl) or block_name.startswith("__"):
             continue
 
-        elif getmodule(block_impl) != right_impl:
+        elif getmodule(block_impl) is not None:
             # Skip imported stuff
             continue
         # simple case, brand new block
@@ -330,23 +329,6 @@ def combine_transformations(
                 setattr(left_block_impl, trans_name, trans_impl)
                 if trans_name in right_block_spec:
                     left_block_spec[trans_name] = right_block_spec[trans_name]
-
-    return left_spec, left_impl
-
-    for key, value in right_impl.__dict__.items():
-        if not key.startswith("__") and key in left_spec:
-            # Ovewrite the left implementation
-            setattr(left_impl, key, value)
-        elif not key.startswith("__") and key not in left_spec:
-            # New transformation, needs a specification
-            if right_spec is None or not hasattr(right_spec, key):
-                raise ValueError(f"Transformation {key} is not defined in the spec")
-    for key, value in right_spec.items():
-        if key not in right_impl.__dict__:
-            raise ValueError(
-                f"Transformation {key} is not defined" " in the implementation"
-            )
-        left_spec[key] = value
     return left_spec, left_impl
 
 
