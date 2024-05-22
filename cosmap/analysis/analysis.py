@@ -5,6 +5,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from cosmap.analysis import dependencies, task
+from cosmap.analysis.check import check_analysis
 from cosmap.analysis.sampler import Sampler
 from cosmap.analysis.setup import handle_setup
 from cosmap.dataset import get_dataset
@@ -77,6 +78,11 @@ class CosmapAnalysis:
         self.parameters.sampling_parameters.dtypes = self.needed_datatypes
 
         self.output_handler = get_output_handler(self.parameters.output_parameters)
+
+        # To check an analysis, we run a single sample through the full
+        # analysis to see if it works.
+        check_analysis(self)
+
         self.client = Client(
             n_workers=self.parameters.threads - 1, threads_per_worker=1
         )
@@ -98,6 +104,9 @@ class CosmapAnalysis:
         valid DAG structure, all transformations defined in the config are in the
         implementation file, and that all transformations take parameters that actually
         exist (or, will be created by a previous transformation)
+
+        Note, this only does initial configuration checking. Actually checking that
+        the analysis runs is done later.
         """
         transformations = self.parameters.analysis_parameters.transformations.get(
             "Main", {}
