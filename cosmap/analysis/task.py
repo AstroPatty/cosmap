@@ -140,7 +140,7 @@ def main_task(
     logger.info(f"Worker {my_id} recieved {len(coordinates)} samples")
 
     dataset = worker.dataset
-    sample_generator = dataset.sample_generator(
+    sample_generator = dataset.get_data_from_samples(
         coordinates,
         dtypes=dtypes,
         sample_type=sample_shape,
