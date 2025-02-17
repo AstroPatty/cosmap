@@ -214,35 +214,35 @@ markers = {main = "python_version == \"3.11\" and sys_platform == \"win32\" or p
 
 [[package]]
 name = "dask"
-version = "2023.12.1"
+version = "2025.2.0"
 description = "Parallel PyData with Task Scheduling"
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["main"]
 markers = "python_version == \"3.11\" or python_version >= \"3.12\""
 files = [
-    {file = "dask-2023.12.1-py3-none-any.whl", hash = "sha256:55f316f32da9e68fe995e2c0dc460cb8888cd4a1af32096753788e8af45a8d10"},
-    {file = "dask-2023.12.1.tar.gz", hash = "sha256:0ac3acd5bdbfacb5ad6401ac7663a1135955b3fa051a118e1b8a88e87b6b44a2"},
+    {file = "dask-2025.2.0-py3-none-any.whl", hash = "sha256:f0fdeef6ceb0a06569d456c9e704f220f7f54e80f3a6ea42ab98cea6bc642b6e"},
+    {file = "dask-2025.2.0.tar.gz", hash = "sha256:89c87125d04d28141eaccc4794164ce9098163fd22d8ad943db48f8d4c815460"},
 ]
 
 [package.dependencies]
 click = ">=8.1"
-cloudpickle = ">=1.5.0"
-distributed = {version = "2023.12.1", optional = true, markers = "extra == \"distributed\""}
+cloudpickle = ">=3.0.0"
+distributed = {version = "2025.2.0", optional = true, markers = "extra == \"distributed\""}
 fsspec = ">=2021.09.0"
-importlib-metadata = ">=4.13.0"
+importlib_metadata = {version = ">=4.13.0", markers = "python_version < \"3.12\""}
 packaging = ">=20.0"
-partd = ">=1.2.0"
+partd = ">=1.4.0"
 pyyaml = ">=5.3.1"
 toolz = ">=0.10.0"
 
 [package.extras]
-array = ["numpy (>=1.21)"]
-complete = ["dask[array,dataframe,diagnostics,distributed]", "lz4 (>=4.3.2)", "pyarrow (>=7.0)", "pyarrow-hotfix"]
-dataframe = ["dask[array]", "pandas (>=1.3)"]
-diagnostics = ["bokeh (>=2.4.2)", "jinja2 (>=2.10.3)"]
-distributed = ["distributed (==2023.12.1)"]
-test = ["pandas[test]", "pre-commit", "pytest", "pytest-cov", "pytest-rerunfailures", "pytest-timeout", "pytest-xdist"]
+array = ["numpy (>=1.24)"]
+complete = ["dask[array,dataframe,diagnostics,distributed]", "lz4 (>=4.3.2)", "pyarrow (>=14.0.1)"]
+dataframe = ["dask[array]", "pandas (>=2.0)", "pyarrow (>=14.0.1)"]
+diagnostics = ["bokeh (>=3.1.0)", "jinja2 (>=2.10.3)"]
+distributed = ["distributed (==2025.2.0)"]
+test = ["pandas[test]", "pre-commit", "pytest", "pytest-cov", "pytest-mock", "pytest-rerunfailures", "pytest-timeout", "pytest-xdist"]
 
 [[package]]
 name = "distlib"
@@ -259,32 +259,32 @@ files = [
 
 [[package]]
 name = "distributed"
-version = "2023.12.1"
+version = "2025.2.0"
 description = "Distributed scheduler for Dask"
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["main"]
 markers = "python_version == \"3.11\" or python_version >= \"3.12\""
 files = [
-    {file = "distributed-2023.12.1-py3-none-any.whl", hash = "sha256:f0c5e50c26b6cf5106b2d4116bf168dfccebe42e9670ddf58cfe3618b8b94ed8"},
-    {file = "distributed-2023.12.1.tar.gz", hash = "sha256:56e69d90c6099e066751907956144cf94d0bc7050bd69ef2ec8003e890c2540c"},
+    {file = "distributed-2025.2.0-py3-none-any.whl", hash = "sha256:368462084be47092d0a835f6c64c9b852da64dc88302b76d5f93bd5131228c67"},
+    {file = "distributed-2025.2.0.tar.gz", hash = "sha256:84e8e3a9290db805250cd8f0b46416b8e3e32c8088ffa778d8a21ea1e2c1cac3"},
 ]
 
 [package.dependencies]
 click = ">=8.0"
-cloudpickle = ">=1.5.0"
-dask = "2023.12.1"
+cloudpickle = ">=3.0.0"
+dask = "2025.2.0"
 jinja2 = ">=2.10.3"
 locket = ">=1.0.0"
-msgpack = ">=1.0.0"
+msgpack = ">=1.0.2"
 packaging = ">=20.0"
-psutil = ">=5.7.2"
-pyyaml = ">=5.3.1"
+psutil = ">=5.8.0"
+pyyaml = ">=5.4.1"
 sortedcontainers = ">=2.0.5"
 tblib = ">=1.6.0"
-toolz = ">=0.10.0"
-tornado = ">=6.0.4"
-urllib3 = ">=1.24.3"
+toolz = ">=0.11.2"
+tornado = ">=6.2.0"
+urllib3 = ">=1.26.5"
 zict = ">=3.0.0"
 
 [[package]]
@@ -549,7 +549,7 @@ description = "Read metadata from Python packages"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "python_version == \"3.11\" or python_version >= \"3.12\""
+markers = "python_version == \"3.11\""
 files = [
     {file = "importlib_metadata-7.0.2-py3-none-any.whl", hash = "sha256:f4bc4c0c070c490abf4ce96d715f68e95923320370efb66143df00199bb6c100"},
     {file = "importlib_metadata-7.0.2.tar.gz", hash = "sha256:198f568f3230878cb1b44fbd7975f87906c22336dba2e4a7f05278c281fbd792"},
@@ -1913,7 +1913,7 @@ description = "Backport of pathlib-compatible object wrapper for zip files"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "python_version == \"3.11\" or python_version >= \"3.12\""
+markers = "python_version == \"3.11\""
 files = [
     {file = "zipp-3.17.0-py3-none-any.whl", hash = "sha256:0e923e726174922dce09c53c59ad483ff7bbb8e572e00c7f7c46b88556409f31"},
     {file = "zipp-3.17.0.tar.gz", hash = "sha256:84e64a1c28cf7e91ed2078bb8cc8c259cb19b76942096c8d7b84947690cabaf0"},
