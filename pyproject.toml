@@ -1,6 +1,6 @@
 [project]
 name = "cosmap"
-version = "0.2.8"
+version = "0.3.0"
 description = ""
 authors = [{name = "Patrick Wells", email="patrick@astropatty.com"}]
 readme = "README.md"
