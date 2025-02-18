@@ -59,14 +59,14 @@ import numpy as np
 
 class Main:
     @staticmethod
-        def compute_radius(catalog: Table, sample_region)
+    def compute_radius(catalog: Table, sample_region):
 	object_coordinates = catalog['coordinates']
 	center_coordinate = sample_Region.coordinate
 	distances = center_coordinate.separation(object_coordinates)
 	catalog['distances'] = distances
 
     @staticmethod
-    def compute_result(catalog: Table, min_radius: u.Quantity)
+    def compute_result(catalog: Table, min_radius: u.Quantity):
 	mask = catalog['distances'] > min_radius
 	filtered_catalog = catalog[mask]	
 	n_galaxies = len(filtered_catalog)
