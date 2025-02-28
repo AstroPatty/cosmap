@@ -159,6 +159,12 @@ def main_task(
         except analysis.CosmapBadSampleError:
             logger.warning("Bad sample detected. Skipping...")
             continue
+    if i < (len(coordinates) - 1):
+        logger.warning(
+            "Worker got less data samples than expected. This "
+            "probably you're missing some data for the region you're sampling over. "
+            f"Expected {len(coordinates)} samples, got {i + 1}"
+        )
     return results
 
 
