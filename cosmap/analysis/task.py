@@ -69,7 +69,7 @@ def generate_tasks(
 
     logger.info(f"Chunking samples with chunksize = {chunk_size}")
 
-    chunks = np.array_split(samples, n_chunks / n_workers)
+    chunks = np.array_split(samples, n_chunks)
     sample_shape = parameters.sampling_parameters.sample_shape
     sample_dimensions = parameters.sampling_parameters.sample_dimensions
 
@@ -81,17 +81,14 @@ def generate_tasks(
         sample_dimension = max(sample_dimensions)
     except TypeError:
         sample_dimension = sample_dimensions
-    for c in chunks:
-        splits = np.array_split(c, n_workers)
-        f = partial(
-            main_task,
-            dtypes=needed_dtypes,
-            sample_shape="cone",
-            sample_dimensions=sample_dimension,
-            pipeline_function=pipeline_function,
-        )
-        tasks = client.map(f, splits)
-        yield tasks
+    f = partial(
+        main_task,
+        dtypes=needed_dtypes,
+        sample_shape="cone",
+        sample_dimensions=sample_dimension,
+        pipeline_function=pipeline_function,
+    )
+    return client.map(f, chunks)
 
 
 def build_pipeline(parameters: BaseModel, dependency_graph):
