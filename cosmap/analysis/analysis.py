@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dask.distributed import Client
+from dask.distributed import Client, as_completed
 from loguru import logger
 from pydantic import BaseModel
 
@@ -149,14 +149,14 @@ class CosmapAnalysis:
 
     def run(self, *args, **kwargs):
         n_completed = 0
-        for chunk in self.tasks:
-            results = self.client.gather(chunk)
-            # Note: this is an array of arrays, so we flatten it
-            results = [item for sublist in results for item in sublist]
-            n_completed += len(results)
-            self.output_handler.take_outputs(results)
+        for future in as_completed(futures=self.tasks):
+            result = future.result()
+            n_completed += len(result)
+            self.output_handler.take_outputs(result)
             logger.info(
                 f"Completed {n_completed} of "
                 f"{self.parameters.sampling_parameters.n_samples} samples"
             )
             self.output_handler.write_output()
+
+        logger.info("All samples completed!")
