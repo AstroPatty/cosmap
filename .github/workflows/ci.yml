@@ -31,7 +31,6 @@ jobs:
 
   release-github-package:
     runs-on: ubuntu-latest
-    needs: check-pyproject-version
     permissions:
       contents: write
     steps:
