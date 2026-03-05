@@ -49,7 +49,6 @@ def sky_coord_validator(v: dict, *args, **kwargs) -> SkC:
 
 
 def sky_coord_serializer(value):
-    print(value)
     return {
         "coordinate": [value.ra.value, value.dec.value],
         "units": [value.ra.unit.to_string(), value.dec.unit.to_string()],

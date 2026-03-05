@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 from types import ModuleType
+from typing import Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, model_validator, validator
 
 from cosmap.config.models import sky
 
@@ -92,8 +93,22 @@ class CosmapDatasetParameters(BaseModel):
     heinlein, which is optimized for large survey datasets.
     """
 
-    dataset_name: str
+    dataset_name: Optional[str] = None
+    dataset_path: Optional[Path] = None
     dataset_wrapper: str = "heinlein"
+    dataset_columns: Optional[list[str]] = None
+
+    @model_validator(mode="after")
+    def validate_wrapper(self):
+        if self.dataset_wrapper == "heinlein" and self.dataset_name is None:
+            raise ValueError(
+                "When using the heinlein wrapper, a dataset name must be set"
+            )
+        if self.dataset_wrapper == "opencosmo" and self.dataset_path is None:
+            raise ValueError(
+                "When using the opencosmo wrapper, a dataset path must be set"
+            )
+        return self
 
 
 class CosmapOutputParameters(BaseModel):

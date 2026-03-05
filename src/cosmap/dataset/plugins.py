@@ -1,6 +1,10 @@
+from pathlib import Path
+
 from dask.distributed.diagnostics.plugin import WorkerPlugin
 from heinlein import load_dataset
 from pydantic import BaseModel
+
+from cosmap.dataset.opencosmo import opencosmoPlugin
 
 """
 At present, datasets are attached to Dask workers as plugins. Ideally, a dataset
@@ -25,14 +29,16 @@ class heinleinPlugin(WorkerPlugin):
         del worker.dataset
 
 
-known_wrappers = {"heinlein": heinleinPlugin}
+known_wrappers = {"heinlein": heinleinPlugin, "opencosmo": opencosmoPlugin}
 
 
 def get_dataset(dataset_parameters: BaseModel):
     return _get_dataset(**dataset_parameters.dict())
 
 
-def _get_dataset(dataset_wrapper: str, dataset_name: str, *args, **kwargs):
+def _get_dataset(
+    dataset_wrapper: str, dataset_name: str, dataset_path: Path, *args, **kwargs
+):
     """
     Get a dataset from a given wrapper. In the future, we will
     support custom wrappers.
@@ -40,4 +46,4 @@ def _get_dataset(dataset_wrapper: str, dataset_name: str, *args, **kwargs):
     if dataset_wrapper not in known_wrappers:
         raise ValueError(f"Unknown wrapper {dataset_wrapper}")
     wrapper = known_wrappers[dataset_wrapper]
-    return wrapper(dataset_name)
+    return wrapper(dataset_name, dataset_path, **kwargs)
