@@ -18,7 +18,7 @@ improve this in the future.
 
 
 class heinleinPlugin(WorkerPlugin):
-    def __init__(self, dataset_name):
+    def __init__(self, dataset_name, **kwargs):
         self.dataset_name = dataset_name
 
     def setup(self, worker):
