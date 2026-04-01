@@ -49,11 +49,9 @@ class OpenCosmoProxy:
         min_dec = min_dec - 2 * sample_dimensions
         max_dec = max_dec + 2 * sample_dimensions
 
-        dataset = self.__dataset.box_search((min_ra, min_dec), (max_ra, max_dec))
-        _ = dataset.get_data()  # load into cache
         for coordinate in coordinates:
             region = oc.make_cone(coordinate, sample_dimensions)
-            yield region, {"catalog": dataset.bound(region).get_data()}
+            yield region, {"catalog": self.__dataset.bound(region).get_data()}
 
 
 def identify_opencosmo_files(path: Path):
