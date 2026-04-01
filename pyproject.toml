@@ -1,6 +1,6 @@
 [project]
 name = "cosmap"
-version = "0.4.2"
+version = "0.4.3"
 description = ""
 authors = [{ name = "Patrick Wells", email = "patrick@astropatty.com" }]
 requires-python = ">=3.11,<3.14"
